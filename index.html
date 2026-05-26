@@ -2,17 +2,34 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factor 6 - Slot Machine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Factor 6 - Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body { 
             margin: 0; 
             background: linear-gradient(135deg, #1a0033 0%, #2d004d 30%, #4a0072 70%, #1a0033 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; 
-            height: 100vh; font-family: 'Arial', sans-serif; color: white;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-evenly; 
+            min-height: 100vh;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            color: white;
             overflow: hidden;
+            padding: 10px;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* Partículas de fondo */
         .particulas {
             position: fixed;
             top: 0; left: 0;
@@ -30,66 +47,59 @@
         }
 
         @keyframes caer {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
         #tablero { 
-            display: flex; flex-direction: column; align-items: center; gap: 15px; 
+            display: flex; flex-direction: column; align-items: center; gap: 10px; 
             background: rgba(0,0,0,0.6);
-            padding: 25px;
+            padding: 20px;
             border-radius: 25px;
             backdrop-filter: blur(15px);
             border: 3px solid #FFD700;
             box-shadow: 0 0 30px rgba(255,215,0,0.3);
             position: relative;
             z-index: 1;
+            width: 95%;
+            max-width: 400px;
         }
 
         .fila-superior { 
             display: flex; 
-            gap: 15px; 
+            gap: 10px; 
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .cuadrado { 
-            width: 70px; 
-            height: 70px; 
+            width: 60px; 
+            height: 60px; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             font-weight: bold; 
-            font-size: 2em;
+            font-size: 1.8em;
             border-radius: 15px; 
             color: white; 
             transition: all 0.3s ease; 
             border: 3px solid rgba(255,255,255,0.3);
-            background: rgba(0,0,0,0.5);
             position: relative;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
         
         #c6 { 
-            width: 200px; 
-            height: 80px; 
+            width: 180px; 
+            height: 70px; 
             background: linear-gradient(135deg, #B8860B, #FFD700);
             clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             font-weight: bold; 
-            font-size: 2.5em; 
+            font-size: 2.2em; 
             color: #000; 
             transition: all 0.3s ease; 
             border: 3px solid #FFD700;
@@ -102,34 +112,32 @@
         .c4 { background: linear-gradient(135deg, #2196F3, #1565C0); }
         .c5 { background: linear-gradient(135deg, #9C27B0, #6A1B9A); }
 
-        /* Máquina tragamonedas */
         .slot-machine {
             background: linear-gradient(180deg, #2a0040 0%, #1a0030 50%, #0d0020 100%);
-            border: 8px solid #FFD700;
+            border: 6px solid #FFD700;
             border-radius: 30px;
-            padding: 40px;
-            box-shadow: 
-                0 0 50px rgba(255,215,0,0.5),
-                0 0 100px rgba(255,215,0,0.3),
-                inset 0 0 30px rgba(255,215,0,0.1);
+            padding: 25px;
+            box-shadow: 0 0 50px rgba(255,215,0,0.5), 0 0 100px rgba(255,215,0,0.3);
             position: relative;
             z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
+            gap: 25px;
+            width: 95%;
+            max-width: 400px;
         }
 
         .slot-ventana {
             background: #000;
             border: 5px solid #B8860B;
             border-radius: 20px;
-            padding: 30px;
+            padding: 25px;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
             overflow: hidden;
             position: relative;
-            width: 200px;
-            height: 150px;
+            width: 180px;
+            height: 140px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -138,9 +146,7 @@
         .slot-ventana::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 50%;
             background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
             z-index: 2;
@@ -148,8 +154,8 @@
         }
 
         .rodillo-unico {
-            width: 150px;
-            height: 150px;
+            width: 140px;
+            height: 140px;
             background: #1a1a1a;
             border: 3px solid #333;
             border-radius: 15px;
@@ -166,41 +172,33 @@
 
         .numero-rodillo {
             width: 100%;
-            height: 150px;
+            height: 140px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 5em;
+            font-size: 4.5em;
             font-weight: 900;
             color: #FFD700;
-            text-shadow: 
-                0 0 20px rgba(255,215,0,0.8),
-                0 0 40px rgba(255,215,0,0.4),
-                0 0 60px rgba(255,215,0,0.2);
+            text-shadow: 0 0 20px rgba(255,215,0,0.8);
             background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
             border-bottom: 2px solid #333;
         }
 
         .marcador-central {
             position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 150px;
+            top: 50%; left: 0; right: 0;
+            height: 140px;
             border-top: 4px solid #FFD700;
             border-bottom: 4px solid #FFD700;
             transform: translateY(-50%);
             z-index: 3;
             pointer-events: none;
-            box-shadow: 
-                0 0 20px rgba(255,215,0,0.5),
-                inset 0 0 20px rgba(255,215,0,0.2);
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
         }
 
         .flechas-indicadoras {
             position: absolute;
-            left: -40px;
-            right: -40px;
+            left: -35px; right: -35px;
             top: 50%;
             transform: translateY(-50%);
             z-index: 4;
@@ -210,61 +208,51 @@
         }
 
         .flecha-indicadora {
-            width: 0;
-            height: 0;
-            border-top: 20px solid transparent;
-            border-bottom: 20px solid transparent;
+            width: 0; height: 0;
+            border-top: 18px solid transparent;
+            border-bottom: 18px solid transparent;
         }
 
         .flecha-izquierda {
-            border-right: 25px solid #FFD700;
+            border-right: 22px solid #FFD700;
             filter: drop-shadow(0 0 10px rgba(255,215,0,0.8));
         }
 
         .flecha-derecha {
-            border-left: 25px solid #FFD700;
+            border-left: 22px solid #FFD700;
             filter: drop-shadow(0 0 10px rgba(255,215,0,0.8));
         }
 
         .luces-laterales {
             position: absolute;
-            top: 0;
-            bottom: 0;
+            top: 0; bottom: 0;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
             z-index: 4;
         }
 
-        .luces-izquierda {
-            left: -35px;
-        }
-
-        .luces-derecha {
-            right: -35px;
-        }
+        .luces-izquierda { left: -30px; }
+        .luces-derecha { right: -30px; }
 
         .luz {
-            width: 20px;
-            height: 20px;
+            width: 18px; height: 18px;
             border-radius: 50%;
             background: #FFD700;
             box-shadow: 0 0 20px #FFD700;
             animation: parpadear 0.5s infinite alternate;
         }
 
-        .luz:nth-child(even) {
-            animation-delay: 0.3s;
-        }
+        .luz:nth-child(even) { animation-delay: 0.3s; }
 
         @keyframes parpadear {
             from { opacity: 0.2; box-shadow: 0 0 5px #FFD700; }
-            to { opacity: 1; box-shadow: 0 0 25px #FFD700, 0 0 40px #FFD700; }
+            to { opacity: 1; box-shadow: 0 0 25px #FFD700; }
         }
 
         .btn-lanzar { 
-            padding: 20px 60px; 
-            font-size: 1.4em; 
+            padding: 18px 50px; 
+            font-size: 1.3em; 
             background: linear-gradient(180deg, #FFD700, #B8860B);
             border: 3px solid #FFD700;
             border-radius: 50px; 
@@ -273,71 +261,30 @@
             color: #1a0030; 
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            box-shadow: 
-                0 8px 25px rgba(255,215,0,0.5),
-                inset 0 -5px 15px rgba(0,0,0,0.3);
-            position: relative;
-            overflow: hidden;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(255,215,0,0.5);
+            width: 100%;
+            max-width: 300px;
         }
         
-        .btn-lanzar::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent);
-            transform: rotate(45deg);
-            transition: transform 0.5s;
-        }
-
-        .btn-lanzar:hover::before {
-            transform: rotate(45deg) translate(100%, 100%);
-        }
-        
-        .btn-lanzar:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(255,215,0,0.8);
-        }
-        
-        .btn-lanzar:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: translateY(0);
-            animation: none;
-        }
-
-        .btn-lanzar:disabled::before {
-            animation: none;
-        }
+        .btn-lanzar:active { transform: scale(0.95); }
+        .btn-lanzar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .iluminado { 
             border-color: #FFD700 !important; 
             transform: scale(1.15); 
-            box-shadow: 
-                0 0 30px #FFD700, 
-                0 0 60px rgba(255,215,0,0.5), 
-                0 0 90px rgba(255,215,0,0.3),
-                inset 0 0 30px rgba(255,215,0,0.3) !important; 
+            box-shadow: 0 0 30px #FFD700, 0 0 60px rgba(255,215,0,0.5), inset 0 0 30px rgba(255,215,0,0.3) !important; 
             animation: brillo 0.5s ease-in-out infinite alternate;
             z-index: 10;
         }
         
         @keyframes brillo {
-            0% { 
-                box-shadow: 0 0 20px #FFD700, 0 0 40px rgba(255,215,0,0.5);
-                border-width: 3px;
-            }
-            100% { 
-                box-shadow: 0 0 50px #FFD700, 0 0 80px rgba(255,215,0,0.7), 0 0 120px rgba(255,215,0,0.5);
-                border-width: 5px;
-            }
+            0% { box-shadow: 0 0 20px #FFD700; }
+            100% { box-shadow: 0 0 50px #FFD700, 0 0 80px rgba(255,215,0,0.7); }
         }
 
         .resultado-numero {
-            font-size: 3em;
+            font-size: 2.5em;
             color: #FFD700;
             text-shadow: 0 0 30px #FFD700;
             font-weight: bold;
@@ -346,30 +293,21 @@
         }
 
         @keyframes aparecer {
-            from {
-                transform: scale(0) rotate(-180deg);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
-            }
+            from { transform: scale(0) rotate(-180deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
         @keyframes vibracion {
             0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-            20%, 40%, 60%, 80% { transform: translateX(3px); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
         }
 
-        .vibrando {
-            animation: vibracion 0.15s infinite;
-        }
+        .vibrando { animation: vibracion 0.15s infinite; }
     </style>
 </head>
 <body>
 
-    <!-- Partículas de fondo -->
     <div class="particulas" id="particulas"></div>
 
     <div id="tablero">
@@ -387,7 +325,6 @@
         <div class="luces-laterales luces-izquierda">
             <div class="luz"></div><div class="luz"></div><div class="luz"></div>
             <div class="luz"></div><div class="luz"></div><div class="luz"></div>
-            <div class="luz"></div><div class="luz"></div>
         </div>
         
         <div class="slot-ventana">
@@ -404,16 +341,30 @@
         <div class="luces-laterales luces-derecha">
             <div class="luz"></div><div class="luz"></div><div class="luz"></div>
             <div class="luz"></div><div class="luz"></div><div class="luz"></div>
-            <div class="luz"></div><div class="luz"></div>
         </div>
         
         <div class="resultado-numero" id="resultado"></div>
         
-        <button class="btn-lanzar" id="boton" onclick="tirarPalanca()">🎰 JACKPOT 🎰</button>
+        <button class="btn-lanzar" id="boton">🎰 JACKPOT 🎰</button>
     </div>
 
     <script>
-        // Crear partículas de fondo
+        // ========================================
+        // INICIALIZACIÓN DE TELEGRAM WEB APP
+        // ========================================
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        // ========================================
+        // CONFIGURACIÓN - NO NECESITAS PONER EL TOKEN AQUÍ
+        // El token solo va en el bot de Python
+        // ========================================
+        
+        console.log('✅ Mini App Factor 6 iniciada');
+        console.log('👤 Usuario:', tg.initDataUnsafe?.user?.first_name || 'Invitado');
+
+        // Crear partículas
         function crearParticulas() {
             const container = document.getElementById('particulas');
             for (let i = 0; i < 25; i++) {
@@ -429,30 +380,27 @@
         }
         crearParticulas();
 
-        // Inicializar rodillo
+        // Variables del juego
         let intervaloActual = null;
         let resultadoFinal = 0;
+        let jugadasRealizadas = 0;
+        const MAX_JUGADAS = 10;
 
         function inicializarRodillo() {
             const rodillo = document.getElementById('numeros');
             rodillo.innerHTML = '';
-            
-            // Crear secuencia de números ordenados del 1 al 6 (varias veces para animación)
             const secuencia = [];
-            for (let i = 0; i < 5; i++) { // 5 vueltas completas
+            for (let i = 0; i < 5; i++) {
                 for (let j = 1; j <= 6; j++) {
                     secuencia.push(j);
                 }
             }
-            
             secuencia.forEach(num => {
                 const div = document.createElement('div');
                 div.className = 'numero-rodillo';
                 div.textContent = num;
                 rodillo.appendChild(div);
             });
-            
-            // Posicionar en la primera posición (número 1)
             rodillo.style.transform = 'translateY(0px)';
         }
         inicializarRodillo();
@@ -461,49 +409,48 @@
             const boton = document.getElementById('boton');
             if (boton.disabled) return;
             
+            if (jugadasRealizadas >= MAX_JUGADAS) {
+                tg.showAlert('🎲 Límite de jugadas alcanzado. ¡Vuelve mañana!');
+                return;
+            }
+            
             boton.disabled = true;
             document.getElementById('resultado').style.display = 'none';
             
-            // Limpiar iluminaciones
             document.querySelectorAll('.cuadrado, #c6').forEach(el => {
                 el.classList.remove('iluminado');
             });
             
-            // Elegir número ganador aleatorio (1-6)
             resultadoFinal = Math.floor(Math.random() * 6) + 1;
-            console.log('🎯 Resultado elegido:', resultadoFinal);
+            console.log('🎯 Resultado:', resultadoFinal);
             
-            // Agregar efecto de vibración
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+            
             const slotMachine = document.querySelector('.slot-machine');
             slotMachine.classList.add('vibrando');
             
-            // Detener intervalo anterior
             if (intervaloActual) clearInterval(intervaloActual);
-            
-            // Inicializar nuevo rodillo
             inicializarRodillo();
             const rodillo = document.getElementById('numeros');
             
             let posicion = 0;
-            let velocidad = 40; // Velocidad inicial
+            let velocidad = 40;
             let framesAvanzados = 0;
-            const totalFrames = 180; // Total de frames de animación
+            const totalFrames = 180;
             
             intervaloActual = setInterval(() => {
-                // Mover el rodillo hacia arriba
-                const desplazamiento = posicion * 150; // 150px por número
+                const desplazamiento = posicion * 140;
                 rodillo.style.transform = `translateY(-${desplazamiento}px)`;
-                
                 posicion++;
                 framesAvanzados++;
                 
-                // Si llegamos al final de la secuencia, reiniciamos
                 if (posicion >= 30) {
                     posicion = 0;
                     inicializarRodillo();
                 }
                 
-                // Aumentar velocidad gradualmente
                 if (framesAvanzados < 100) {
                     velocidad = Math.max(20, velocidad - 1);
                 } else if (framesAvanzados < 150) {
@@ -512,75 +459,82 @@
                     velocidad += 5;
                 }
                 
-                // Detener después de suficientes frames
                 if (framesAvanzados >= totalFrames) {
                     clearInterval(intervaloActual);
-                    
-                    // Quitar vibración
                     slotMachine.classList.remove('vibrando');
-                    
-                    // Calcular la posición correcta para el número ganador
-                    setTimeout(() => {
-                        posicionarNumeroGanador(resultadoFinal);
-                    }, 200);
+                    setTimeout(() => posicionarNumeroGanador(resultadoFinal), 200);
                 }
             }, velocidad);
         }
 
         function posicionarNumeroGanador(numero) {
             const rodillo = document.getElementById('numeros');
+            const desplazamiento = (numero - 1) * 140;
             
-            // El número 1 está en posición 0, número 2 en 150px, número 3 en 300px, etc.
-            const desplazamiento = (numero - 1) * 150;
-            
-            console.log('Posicionando número:', numero, 'Desplazamiento:', desplazamiento + 'px');
-            
-            // Animación de rebote para posicionar
             rodillo.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
             rodillo.style.transform = `translateY(-${desplazamiento}px)`;
             
-            // Iluminar el número correcto después de la animación
             setTimeout(() => {
-                console.log('Iluminando número:', numero);
                 iluminarNumero(numero);
                 document.getElementById('boton').disabled = false;
+                jugadasRealizadas++;
                 
-                // Mostrar número ganador
                 const resultado = document.getElementById('resultado');
                 resultado.textContent = `🎉 ${numero} 🎉`;
                 resultado.style.display = 'block';
                 
-                // Restaurar transición normal
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+                
+                // Enviar datos al bot
+                enviarDatosAlBot(numero);
+                
                 setTimeout(() => {
                     rodillo.style.transition = 'transform 0.1s linear';
                 }, 1000);
                 
-                // Efecto de celebración
                 crearEfectoCelebracion();
+                
+                if (jugadasRealizadas >= MAX_JUGADAS - 3) {
+                    setTimeout(() => {
+                        tg.showPopup({
+                            title: '⚠️ Aviso',
+                            message: `Te quedan ${MAX_JUGADAS - jugadasRealizadas} jugadas.`,
+                            buttons: [{type: 'ok'}]
+                        });
+                    }, 2000);
+                }
             }, 900);
         }
 
+        function enviarDatosAlBot(numero) {
+            const data = JSON.stringify({
+                action: 'resultado',
+                numero: numero,
+                jugadas: jugadasRealizadas,
+                timestamp: Date.now()
+            });
+            
+            try {
+                tg.sendData(data);
+                console.log('📤 Datos enviados al bot');
+            } catch (error) {
+                console.log('ℹ️ Mini App independiente');
+            }
+        }
+
         function iluminarNumero(numero) {
-            // Primero limpiamos todas las iluminaciones
             document.querySelectorAll('.cuadrado, #c6').forEach(el => {
                 el.classList.remove('iluminado');
             });
             
-            // Pequeña pausa para asegurar que se limpie
             setTimeout(() => {
                 if (numero === 6) {
-                    const elemento6 = document.getElementById('c6');
-                    if (elemento6) {
-                        elemento6.classList.add('iluminado');
-                        console.log('Iluminado: Número 6 (hexágono)');
-                    }
+                    document.getElementById('c6')?.classList.add('iluminado');
                 } else {
                     const cuadrados = document.querySelectorAll('.cuadrado');
-                    const elementoObjetivo = cuadrados[numero - 1];
-                    if (elementoObjetivo) {
-                        elementoObjetivo.classList.add('iluminado');
-                        console.log('Iluminado: Número', numero, 'Cuadrado:', elementoObjetivo);
-                    }
+                    cuadrados[numero - 1]?.classList.add('iluminado');
                 }
             }, 50);
         }
@@ -599,28 +553,22 @@
                     particula.style.height = particula.style.width;
                     particula.style.animationDuration = Math.random() * 2 + 2 + 's';
                     particula.style.background = colores[Math.floor(Math.random() * colores.length)];
-                    particula.style.boxShadow = `0 0 10px ${particula.style.background}`;
                     container.appendChild(particula);
-                    
-                    setTimeout(() => {
-                        particula.remove();
-                    }, 3000);
+                    setTimeout(() => particula.remove(), 3000);
                 }, i * 30);
             }
         }
 
-        // Permitir tirar con la tecla espacio
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                tirarPalanca();
-            }
+        // Eventos
+        document.getElementById('boton').addEventListener('click', (e) => {
+            e.preventDefault();
+            tirarPalanca();
         });
 
-        // Verificar que los elementos del tablero existen
-        console.log('Tablero inicializado:');
-        console.log('- Cuadrados:', document.querySelectorAll('.cuadrado').length);
-        console.log('- Elemento 6:', document.getElementById('c6') ? 'Existe' : 'No existe');
+        document.querySelector('.slot-ventana').addEventListener('click', (e) => {
+            e.stopPropagation();
+            tirarPalanca();
+        });
     </script>
 </body>
 </html>
