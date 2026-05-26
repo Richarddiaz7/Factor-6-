@@ -16,20 +16,24 @@
         .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.3s; border: 4px solid transparent; }
         #c6 { width: 150px; height: 60px; background: #FFD700; clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; border: 4px solid transparent; }
 
-        /* Colores exactos que coinciden con la ruleta */
         .c1 { background-color: #FF5733; } .c2 { background-color: #FFC300; } .c3 { background-color: #DAF7A6; } .c4 { background-color: #33FFBD; } .c5 { background-color: #3380FF; }
 
         #ruleta-container { position: relative; }
-        #flecha { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #FFD700; z-index: 10; }
+        #flecha { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #FFD700; z-index: 10; }
         
         #ruleta { 
             width: 220px; height: 220px; border-radius: 50%; border: 10px solid white;
-            /* Degradado dividido en 6 segmentos de 60 grados cada uno */
             background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg);
             transition: transform 4s cubic-bezier(0.1, 0, 0, 1);
             position: relative;
+            display: flex; justify-content: center; align-items: center;
         }
-        .num { position: absolute; width: 100%; top: 20px; text-align: center; font-weight: bold; color: black; font-size: 1.5em; }
+
+        /* Números limpios */
+        .numero-ruleta { 
+            position: absolute; font-weight: 900; color: #000; font-size: 1.8em; 
+            transform-origin: 0 0; text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
+        }
 
         .btn-lanzar { padding: 15px 40px; font-size: 1.2em; background: #fff; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; color: #000080; }
         .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
@@ -47,27 +51,31 @@
     <div id="ruleta-container">
         <div id="flecha"></div>
         <div id="ruleta">
-            <div class="num" style="transform: rotate(0deg)">1</div>
-            <div class="num" style="transform: rotate(60deg)">2</div>
-            <div class="num" style="transform: rotate(120deg)">3</div>
-            <div class="num" style="transform: rotate(180deg)">4</div>
-            <div class="num" style="transform: rotate(240deg)">5</div>
-            <div class="num" style="transform: rotate(300deg)">6</div>
-        </div>
+            </div>
     </div>
 
     <button class="btn-lanzar" id="boton" onclick="girarRuleta()">GIRAR</button>
 
     <script>
+        // Dibujar números en la ruleta de forma precisa
+        const ruleta = document.getElementById('ruleta');
+        for(let i=1; i<=6; i++) {
+            let n = document.createElement('div');
+            n.className = 'numero-ruleta';
+            n.innerText = i;
+            // Rotamos cada número 60 grados por segmento y movemos hacia afuera
+            n.style.transform = `rotate(${(i-1)*60 + 30}deg) translate(0, -70px)`;
+            ruleta.appendChild(n);
+        }
+
         let grados = 0;
         function girarRuleta() {
-            const ruleta = document.getElementById('ruleta');
             const boton = document.getElementById('boton');
             boton.disabled = true;
             
-            // Ángulos: Cada número está a 60 grados de diferencia
             const res = Math.floor(Math.random() * 6); // 0 a 5
-            const angulos = [0, -60, -120, -180, -240, -300]; 
+            // Ajuste de ángulos para que el sector quede bajo la flecha
+            const angulos = [-30, -90, -150, -210, -270, -330]; 
             
             grados += 1440 + angulos[res]; 
             ruleta.style.transform = `rotate(${grados}deg)`;
