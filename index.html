@@ -3,72 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Edición Venezuela</title>
+    <title>Factor 6 - Versión Definitiva</title>
     <style>
         body { 
             margin: 0; 
-            /* 1. Fondo degradado de azul profundo a negro */
             background: linear-gradient(180deg, #001f3f 0%, #000000 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; font-family: sans-serif;
-            position: relative; overflow: hidden;
+            height: 100vh; font-family: sans-serif; color: white;
         }
 
-        /* 2. Bandera de Venezuela en las esquinas superiores */
-        .bandera {
-            position: absolute; top: 15px; width: 60px; height: 40px; 
-            background: linear-gradient(to bottom, #ffcc00 33.3%, #003399 33.3% 66.6%, #cf142b 66.6%);
-            opacity: 0.6; border-radius: 4px; z-index: 10;
-        }
-        /* Estrellas simplificadas para la bandera */
-        .bandera::after {
-            content: "★★★★★★★"; color: white; font-size: 8px; position: absolute; top: 15px; left: 8px;
-        }
-        .bandera-izq { left: 15px; }
-        .bandera-der { right: 15px; }
+        /* Banderas */
+        .bandera { position: absolute; top: 15px; width: 50px; height: 30px; background: linear-gradient(to bottom, #ffcc00 33.3%, #003399 33.3% 66.6%, #cf142b 66.6%); opacity: 0.7; border-radius: 3px; }
+        .bandera-izq { left: 15px; } .bandera-der { right: 15px; }
 
-        #tablero { display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 5; }
-        
+        /* Tablero */
+        #tablero { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .fila-superior { display: flex; gap: 10px; }
-
-        .cuadrado { 
-            width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; border: 3px solid rgba(0,0,0,0.3); border-radius: 8px;
-            color: black;
-        }
-
-        /* Colores de los cuadrados (Mantenidos) */
-        .c1 { background-color: #FF5733; }
-        .c2 { background-color: #FFC300; }
-        .c3 { background-color: #DAF7A6; }
-        .c4 { background-color: #33FFBD; }
-        .c5 { background-color: #3380FF; }
-
-        /* Trapecio invertido corregido y coloreado */
-        .trapecio { 
-            width: 150px; height: 0; 
-            border-top: 80px solid #FFD700; /* Color dorado para el 6 */
-            border-left: 20px solid transparent; 
-            border-right: 20px solid transparent;
-            display: flex; justify-content: center; align-items: flex-start;
-            margin-top: 10px; position: relative;
-        }
-        .trapecio span { position: absolute; top: -70px; font-size: 1.5em; font-weight: bold; color: black; }
-
-        /* Efecto de iluminación al agitar */
-        .iluminado { border: 4px solid white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
+        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.2s; border: 4px solid transparent; }
         
-        #log { 
-            margin-top: 30px; font-weight: bold; font-size: 1.2em; 
-            background: rgba(255,255,255,0.1); color: #aaa;
-            padding: 10px; border-radius: 10px; z-index: 5;
+        /* 6 Fijo con Clip-path para que no se deforme */
+        #c6 { 
+            width: 150px; height: 70px; background: #FFD700; 
+            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+            display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: black;
+            transition: 0.2s; border: 4px solid transparent; margin-top: 10px;
         }
+
+        /* Colores */
+        .c1 { background-color: #FF5733; } .c2 { background-color: #FFC300; } .c3 { background-color: #DAF7A6; } .c4 { background-color: #33FFBD; } .c5 { background-color: #3380FF; }
+
+        /* Botón y Dado */
+        #dado { font-size: 4em; cursor: pointer; margin-bottom: 20px; }
+        .btn-lanzar { padding: 15px 30px; font-size: 1.2em; background: #fff; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        
+        .iluminado { border-color: white !important; transform: scale(1.05); box-shadow: 0 0 20px white; }
     </style>
 </head>
 <body>
 
     <div class="bandera bandera-izq"></div>
     <div class="bandera bandera-der"></div>
+
+    <div id="dado">🎲</div>
+    <button class="btn-lanzar" onclick="lanzar()">Lanzar Dado</button>
 
     <div id="tablero">
         <div class="fila-superior">
@@ -78,47 +55,20 @@
             <div class="cuadrado c4">4</div>
             <div class="cuadrado c5">5</div>
         </div>
-        <div class="trapecio" id="c6"><span>6</span></div>
+        <div id="c6">6</div>
     </div>
-    <div id="log">Toca la pantalla y agita el móvil</div>
 
     <script>
-        const log = document.getElementById('log');
-        let ultimaAgitacion = 0;
-
-        function activarJuego() {
-            window.addEventListener('devicemotion', (event) => {
-                const acc = event.accelerationIncludingGravity;
-                if (!acc) return;
-                const total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-                if (total > 20 && Date.now() - ultimaAgitacion > 2000) {
-                    ultimaAgitacion = Date.now();
-                    const res = Math.floor(Math.random() * 6) + 1;
-                    log.innerText = "Salió el: " + res;
-                    iluminar(res);
-                }
-            });
+        function lanzar() {
+            const res = Math.floor(Math.random() * 6) + 1;
+            iluminar(res);
         }
 
         function iluminar(n) {
-            const elementos = document.querySelectorAll('.cuadrado, .trapecio');
-            elementos.forEach(el => el.classList.remove('iluminado'));
-            
-            if (n === 6) {
-                document.getElementById('c6').classList.add('iluminado');
-            } else {
-                document.querySelectorAll('.cuadrado')[n-1].classList.add('iluminado');
-            }
+            document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
+            if (n === 6) document.getElementById('c6').classList.add('iluminado');
+            else document.querySelectorAll('.cuadrado')[n-1].classList.add('iluminado');
         }
-
-        document.body.addEventListener('click', () => {
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission().then(res => { if(res === 'granted') activarJuego(); });
-            } else {
-                activarJuego();
-            }
-            log.innerText = "¡Agita fuerte el teléfono!";
-        }, {once: true});
     </script>
 </body>
 </html>
