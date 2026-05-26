@@ -195,9 +195,6 @@
             box-shadow: 
                 0 0 20px rgba(255,215,0,0.5),
                 inset 0 0 20px rgba(255,215,0,0.2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .flechas-indicadoras {
@@ -377,13 +374,13 @@
 
     <div id="tablero">
         <div class="fila-superior">
-            <div class="cuadrado c1">1</div>
-            <div class="cuadrado c2">2</div>
-            <div class="cuadrado c3">3</div>
-            <div class="cuadrado c4">4</div>
-            <div class="cuadrado c5">5</div>
+            <div class="cuadrado c1" data-numero="1">1</div>
+            <div class="cuadrado c2" data-numero="2">2</div>
+            <div class="cuadrado c3" data-numero="3">3</div>
+            <div class="cuadrado c4" data-numero="4">4</div>
+            <div class="cuadrado c5" data-numero="5">5</div>
         </div>
-        <div id="c6">6</div>
+        <div id="c6" data-numero="6">6</div>
     </div>
 
     <div class="slot-machine">
@@ -440,10 +437,12 @@
             const rodillo = document.getElementById('numeros');
             rodillo.innerHTML = '';
             
-            // Crear secuencia de números (múltiples vueltas para animación fluida)
+            // Crear secuencia de números ordenados del 1 al 6 (varias veces para animación)
             const secuencia = [];
-            for (let i = 0; i < 30; i++) {
-                secuencia.push(Math.floor(Math.random() * 6) + 1);
+            for (let i = 0; i < 5; i++) { // 5 vueltas completas
+                for (let j = 1; j <= 6; j++) {
+                    secuencia.push(j);
+                }
             }
             
             secuencia.forEach(num => {
@@ -453,7 +452,7 @@
                 rodillo.appendChild(div);
             });
             
-            // Posicionar en la primera posición
+            // Posicionar en la primera posición (número 1)
             rodillo.style.transform = 'translateY(0px)';
         }
         inicializarRodillo();
@@ -466,11 +465,13 @@
             document.getElementById('resultado').style.display = 'none';
             
             // Limpiar iluminaciones
-            document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
+            document.querySelectorAll('.cuadrado, #c6').forEach(el => {
+                el.classList.remove('iluminado');
+            });
             
-            // Elegir número ganador aleatorio
+            // Elegir número ganador aleatorio (1-6)
             resultadoFinal = Math.floor(Math.random() * 6) + 1;
-            console.log('🎯 Resultado:', resultadoFinal);
+            console.log('🎯 Resultado elegido:', resultadoFinal);
             
             // Agregar efecto de vibración
             const slotMachine = document.querySelector('.slot-machine');
@@ -484,9 +485,9 @@
             const rodillo = document.getElementById('numeros');
             
             let posicion = 0;
-            let velocidad = 30; // Velocidad inicial rápida
-            let vueltasCompletas = 0;
-            const vueltasNecesarias = 8;
+            let velocidad = 40; // Velocidad inicial
+            let framesAvanzados = 0;
+            const totalFrames = 180; // Total de frames de animación
             
             intervaloActual = setInterval(() => {
                 // Mover el rodillo hacia arriba
@@ -494,27 +495,31 @@
                 rodillo.style.transform = `translateY(-${desplazamiento}px)`;
                 
                 posicion++;
+                framesAvanzados++;
                 
                 // Si llegamos al final de la secuencia, reiniciamos
                 if (posicion >= 30) {
                     posicion = 0;
-                    vueltasCompletas++;
                     inicializarRodillo();
-                    
-                    // Reducir velocidad gradualmente
-                    if (vueltasCompletas >= vueltasNecesarias - 2) {
-                        velocidad += 20; // Más lento
-                    }
                 }
                 
-                // Detener cuando haya dado suficientes vueltas
-                if (vueltasCompletas >= vueltasNecesarias) {
+                // Aumentar velocidad gradualmente
+                if (framesAvanzados < 100) {
+                    velocidad = Math.max(20, velocidad - 1);
+                } else if (framesAvanzados < 150) {
+                    velocidad += 2;
+                } else {
+                    velocidad += 5;
+                }
+                
+                // Detener después de suficientes frames
+                if (framesAvanzados >= totalFrames) {
                     clearInterval(intervaloActual);
                     
                     // Quitar vibración
                     slotMachine.classList.remove('vibrando');
                     
-                    // Posicionar en el número ganador con animación de rebote
+                    // Calcular la posición correcta para el número ganador
                     setTimeout(() => {
                         posicionarNumeroGanador(resultadoFinal);
                     }, 200);
@@ -525,21 +530,24 @@
         function posicionarNumeroGanador(numero) {
             const rodillo = document.getElementById('numeros');
             
-            // Calcular desplazamiento para mostrar el número ganador en el centro
+            // El número 1 está en posición 0, número 2 en 150px, número 3 en 300px, etc.
             const desplazamiento = (numero - 1) * 150;
             
-            // Animación de rebote
+            console.log('Posicionando número:', numero, 'Desplazamiento:', desplazamiento + 'px');
+            
+            // Animación de rebote para posicionar
             rodillo.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
             rodillo.style.transform = `translateY(-${desplazamiento}px)`;
             
-            // Mostrar resultado y iluminar
+            // Iluminar el número correcto después de la animación
             setTimeout(() => {
-                iluminar(resultadoFinal);
+                console.log('Iluminando número:', numero);
+                iluminarNumero(numero);
                 document.getElementById('boton').disabled = false;
                 
                 // Mostrar número ganador
                 const resultado = document.getElementById('resultado');
-                resultado.textContent = `🎉 ${resultadoFinal} 🎉`;
+                resultado.textContent = `🎉 ${numero} 🎉`;
                 resultado.style.display = 'block';
                 
                 // Restaurar transición normal
@@ -552,25 +560,29 @@
             }, 900);
         }
 
-        function iluminar(n) {
+        function iluminarNumero(numero) {
+            // Primero limpiamos todas las iluminaciones
             document.querySelectorAll('.cuadrado, #c6').forEach(el => {
                 el.classList.remove('iluminado');
-                el.style.animation = 'none';
-                // Forzar reflow
-                el.offsetHeight;
-                el.style.animation = '';
             });
             
+            // Pequeña pausa para asegurar que se limpie
             setTimeout(() => {
-                if (n === 6) {
-                    document.getElementById('c6').classList.add('iluminado');
+                if (numero === 6) {
+                    const elemento6 = document.getElementById('c6');
+                    if (elemento6) {
+                        elemento6.classList.add('iluminado');
+                        console.log('Iluminado: Número 6 (hexágono)');
+                    }
                 } else {
                     const cuadrados = document.querySelectorAll('.cuadrado');
-                    if (cuadrados[n - 1]) {
-                        cuadrados[n - 1].classList.add('iluminado');
+                    const elementoObjetivo = cuadrados[numero - 1];
+                    if (elementoObjetivo) {
+                        elementoObjetivo.classList.add('iluminado');
+                        console.log('Iluminado: Número', numero, 'Cuadrado:', elementoObjetivo);
                     }
                 }
-            }, 100);
+            }, 50);
         }
 
         function crearEfectoCelebracion() {
@@ -604,6 +616,11 @@
                 tirarPalanca();
             }
         });
+
+        // Verificar que los elementos del tablero existen
+        console.log('Tablero inicializado:');
+        console.log('- Cuadrados:', document.querySelectorAll('.cuadrado').length);
+        console.log('- Elemento 6:', document.getElementById('c6') ? 'Existe' : 'No existe');
     </script>
 </body>
 </html>
