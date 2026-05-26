@@ -2,50 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factor 6 - Edición Tropical</title>
+    <title>Factor 6 - Ruleta Tropical</title>
     <style>
         body { 
             margin: 0; 
-            /* Fondo Playero Animado */
-            background: linear-gradient(135deg, #FF7E5F, #8A2387, #243B55);
-            background-size: 400% 400%;
-            animation: fondoPlayero 15s ease infinite;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            /* Degradado de cielo (celeste) a azul marino */
+            background: linear-gradient(to bottom, #87CEEB 0%, #000080 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: space-around; 
             height: 100vh; font-family: sans-serif; color: white; overflow: hidden;
         }
 
-        @keyframes fondoPlayero {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        #tablero { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        #tablero { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .fila-superior { display: flex; gap: 10px; }
         .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.3s; border: 4px solid transparent; }
         
         #c6 { 
-            width: 150px; height: 70px; background: #FFD700; 
+            width: 150px; height: 60px; background: #FFD700; 
             clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); 
             display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; font-size: 1.5em; color: black; 
-            transition: 0.3s; border: 4px solid transparent; margin-top: 10px; 
+            font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; border: 4px solid transparent; 
         }
 
         .c1 { background-color: #FF5733; } .c2 { background-color: #FFC300; } .c3 { background-color: #DAF7A6; } .c4 { background-color: #33FFBD; } .c5 { background-color: #3380FF; }
 
-        #dado { font-size: 6em; margin-bottom: 20px; cursor: pointer; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .btn-lanzar { padding: 15px 40px; font-size: 1.2em; background: #fff; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; color: #243B55; transition: 0.3s; }
-        .btn-lanzar:hover { transform: scale(1.05); }
-        
-        /* Efecto neón al iluminar */
-        .iluminado { border-color: white !important; transform: scale(1.15); box-shadow: 0 0 30px white, 0 0 10px #FFD700; }
+        /* Ruleta */
+        #ruleta { 
+            width: 220px; height: 220px; border-radius: 50%; 
+            border: 10px solid white; position: relative;
+            background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg);
+            transition: transform 4s cubic-bezier(0.1, 0, 0, 1);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .num { position: absolute; font-weight: bold; color: black; font-size: 1.5em; }
+
+        .btn-lanzar { padding: 15px 40px; font-size: 1.2em; background: #fff; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; color: #000080; }
+        .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
     </style>
 </head>
 <body>
-
-    <div id="dado">🎲</div>
-    <button class="btn-lanzar" id="boton" onclick="iniciarLanzamiento()">¡GIRAR DADO!</button>
 
     <div id="tablero">
         <div class="fila-superior">
@@ -54,24 +48,35 @@
         <div id="c6">6</div>
     </div>
 
-    <script>
-        const carasDado = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-        const boton = document.getElementById('boton');
+    <div id="ruleta">
+        <div class="num" style="transform: rotate(30deg) translate(0,-80px)">1</div>
+        <div class="num" style="transform: rotate(90deg) translate(0,-80px)">2</div>
+        <div class="num" style="transform: rotate(150deg) translate(0,-80px)">3</div>
+        <div class="num" style="transform: rotate(210deg) translate(0,-80px)">4</div>
+        <div class="num" style="transform: rotate(270deg) translate(0,-80px)">5</div>
+        <div class="num" style="transform: rotate(330deg) translate(0,-80px)">6</div>
+    </div>
 
-        function iniciarLanzamiento() {
+    <button class="btn-lanzar" id="boton" onclick="girarRuleta()">GIRAR</button>
+
+    <script>
+        let grados = 0;
+        function girarRuleta() {
+            const ruleta = document.getElementById('ruleta');
+            const boton = document.getElementById('boton');
             boton.disabled = true;
-            let contador = 0;
-            const intervalo = setInterval(() => {
-                document.getElementById('dado').innerText = carasDado[Math.floor(Math.random() * 6)];
-                contador++;
-                if (contador > 10) {
-                    clearInterval(intervalo);
-                    const res = Math.floor(Math.random() * 6) + 1;
-                    document.getElementById('dado').innerText = carasDado[res-1];
-                    iluminar(res);
-                    boton.disabled = false;
-                }
-            }, 100);
+            
+            // Ángulos exactos para caer en cada número (1 al 6)
+            const angulos = [330, 270, 210, 150, 90, 30]; 
+            const res = Math.floor(Math.random() * 6);
+            
+            grados += 1440 + angulos[res];
+            ruleta.style.transform = `rotate(${grados}deg)`;
+            
+            setTimeout(() => {
+                iluminar(res + 1);
+                boton.disabled = false;
+            }, 4100);
         }
 
         function iluminar(n) {
