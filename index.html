@@ -2,33 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Versión Ruleta</title>
+    <title>Factor 6 - Versión Animada</title>
     <style>
-        body { margin: 0; background: #050515; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; overflow: hidden; }
-        
-        .header { display: flex; justify-content: space-between; width: 100%; padding: 0 10px; }
-        .bandera { width: 40px; height: 25px; background: linear-gradient(to bottom, #ffcc00 33%, #003399 33% 66%, #cf142b 66%); border-radius: 3px; }
+        body { margin: 0; background: linear-gradient(180deg, #001f3f 0%, #000000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: white; }
+        .bandera { position: absolute; top: 15px; width: 50px; height: 30px; background: linear-gradient(to bottom, #ffcc00 33.3%, #003399 33.3% 66.6%, #cf142b 66.6%); opacity: 0.7; border-radius: 3px; }
+        .bandera-izq { left: 15px; } .bandera-der { right: 15px; }
 
-        #tablero { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
-        .fila-superior { display: flex; gap: 5px; }
-        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 6px; color: black; transition: 0.3s; border: 3px solid transparent; }
-        .c1 { background: #FF5733; } .c2 { background: #FFC300; } .c3 { background: #DAF7A6; } .c4 { background: #33FFBD; } .c5 { background: #3380FF; }
-        #c6 { width: 140px; height: 60px; background: #FFD700; clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); margin-top: 5px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.3em; }
+        #tablero { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .fila-superior { display: flex; gap: 10px; }
+        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.3s; border: 4px solid transparent; }
+        #c6 { width: 150px; height: 70px; background: #FFD700; clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; border: 4px solid transparent; margin-top: 10px; }
 
-        /* Ruleta */
-        #ruleta { width: 220px; height: 220px; border-radius: 50%; border: 8px solid #333; position: relative; display: flex; justify-content: center; align-items: center; background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg); transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-        #ruleta::after { content: "STOP"; font-weight: bold; color: white; background: #000; padding: 10px; border-radius: 50%; border: 2px solid white; }
+        .c1 { background-color: #FF5733; } .c2 { background-color: #FFC300; } .c3 { background-color: #DAF7A6; } .c4 { background-color: #33FFBD; } .c5 { background-color: #3380FF; }
 
-        .btn { padding: 15px 40px; font-size: 1.5em; background: #FFD700; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.5); }
-        .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 15px white; }
+        #dado { font-size: 5em; margin-bottom: 20px; cursor: pointer; }
+        .btn-lanzar { padding: 15px 30px; font-size: 1.2em; background: #fff; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="bandera"></div>
-        <div class="bandera"></div>
-    </div>
+    <div class="bandera bandera-izq"></div>
+    <div class="bandera bandera-der"></div>
+
+    <div id="dado">🎲</div>
+    <button class="btn-lanzar" id="boton" onclick="iniciarLanzamiento()">Lanzar Dado</button>
 
     <div id="tablero">
         <div class="fila-superior">
@@ -41,24 +38,24 @@
         <div id="c6">6</div>
     </div>
 
-    <div id="ruleta"></div>
-
-    <button class="btn" id="btn" onclick="girar()">LANZAR</button>
-
     <script>
-        function girar() {
-            const btn = document.getElementById('btn');
-            const ruleta = document.getElementById('ruleta');
-            btn.disabled = true;
-            
-            const gradosExtra = Math.floor(Math.random() * 360) + 1440; // Mínimo 4 vueltas
-            ruleta.style.transform = `rotate(${gradosExtra}deg)`;
-            
-            setTimeout(() => {
-                const res = Math.floor(Math.random() * 6) + 1;
-                iluminar(res);
-                btn.disabled = false;
-            }, 3000);
+        const carasDado = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        const boton = document.getElementById('boton');
+
+        function iniciarLanzamiento() {
+            boton.disabled = true;
+            let contador = 0;
+            const intervalo = setInterval(() => {
+                document.getElementById('dado').innerText = carasDado[Math.floor(Math.random() * 6)];
+                contador++;
+                if (contador > 10) {
+                    clearInterval(intervalo);
+                    const res = Math.floor(Math.random() * 6) + 1;
+                    document.getElementById('dado').innerText = carasDado[res-1];
+                    iluminar(res);
+                    boton.disabled = false;
+                }
+            }, 100);
         }
 
         function iluminar(n) {
