@@ -573,6 +573,14 @@
             font-size: 0.9em;
             padding: 5px;
         }
+
+        .sorteo-info {
+            text-align: center;
+            color: #FFD700;
+            font-size: 1em;
+            margin: 5px 0;
+            animation: flotar 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
@@ -613,23 +621,18 @@
 
             <div class="regla">
                 <h3>🔄 Números 1 al 5</h3>
-                <p><strong>Casilla Vacía:</strong> Colocas 1 ficha (la pierdes)<br>
-                <strong>Casilla Ocupada:</strong> Recoges la ficha (ganas 1)</p>
+                <p><strong>Casilla Vacía:</strong> Colocas 1 ficha (la pierdes). ¡Sigues tirando!<br>
+                <strong>Casilla Ocupada:</strong> Recoges la ficha (ganas 1). <strong>Pierdes el turno</strong>.</p>
             </div>
 
             <div class="regla">
                 <h3>💎 Número 6 (Pozo)</h3>
-                <p>La ficha va al pozo y se pierde permanentemente. ¡No se puede recuperar!</p>
+                <p>La ficha va al pozo permanentemente. <strong>No pierdes el turno</strong>, sigues tirando.</p>
             </div>
 
             <div class="regla">
-                <h3>🤖 Modo Multijugador</h3>
-                <p>Compite contra 1-3 oponentes IA. Cada jugador tiene su turno. ¡Observa las fichas de tus rivales!</p>
-            </div>
-
-            <div class="regla">
-                <h3>🏆 Victoria</h3>
-                <p>El primer jugador en quedarse con 0 fichas gana la partida.</p>
+                <h3>🏁 Inicio</h3>
+                <p>Se sortea quién empieza: cada jugador tira el dado hasta que alguien saca un 6.</p>
             </div>
         </div>
         <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
@@ -639,6 +642,9 @@
     <div id="juego" class="pantalla">
         <!-- Panel de jugadores -->
         <div class="panel-jugadores" id="panel-jugadores"></div>
+
+        <!-- Indicador de sorteo (oculto por defecto) -->
+        <div class="sorteo-info" id="sorteo-info" style="display:none;">🎲 Sorteando quién empieza...</div>
 
         <!-- Tablero -->
         <div id="tablero-container">
@@ -707,6 +713,7 @@
         let turnoActual = 0;
         let juegoActivo = false;
         let intervaloActual = null;
+        let enSorteo = false;
 
         // Configuración de jugadores
         const emojis = ['😎', '🤖', '👾', '🦾'];
@@ -756,10 +763,8 @@
                 const card = document.getElementById(`jugador-${index}`);
                 if (card) {
                     card.querySelector('.jugador-fichas').textContent = `🪙 ${jugador.fichas}`;
-                    
-                    // Marcar jugador activo
                     card.classList.remove('activo');
-                    if (index === turnoActual && juegoActivo) {
+                    if (index === turnoActual && juegoActivo && !enSorteo) {
                         card.classList.add('activo');
                     }
                 }
@@ -790,33 +795,45 @@
             
             // Actualizar indicador de turno
             const indicador = document.getElementById('turno-indicador');
-            if (jugadorActual.esIA) {
+            if (enSorteo) {
+                indicador.textContent = '🎲 Sorteando...';
+            } else if (jugadorActual.esIA) {
                 indicador.textContent = `🤖 Turno de ${jugadorActual.nombre}`;
             } else {
                 indicador.textContent = '🎮 Tu turno';
             }
         }
 
+        /**
+         * Aplica la lógica de la tirada.
+         * @returns {boolean} true si el jugador mantiene el turno, false si lo pierde.
+         */
         function colocarFicha(numero) {
-            if (!juegoActivo) return;
+            if (!juegoActivo) return false;
             
             const jugadorActual = jugadores[turnoActual];
+            let mantieneTurno = false;
             
             // Lógica para números 1-5
             if (numero >= 1 && numero <= 5) {
                 if (jugadorActual.casillas[numero] === 0) {
+                    // Casilla vacía: coloca ficha
                     jugadorActual.casillas[numero] = 1;
                     jugadorActual.fichas--;
+                    mantieneTurno = true;   // Sigue tirando
                 } else {
+                    // Casilla ocupada: recoge ficha
                     jugadorActual.casillas[numero] = 0;
                     jugadorActual.fichas++;
+                    mantieneTurno = false;  // Pierde turno
                 }
             }
             
-            // Lógica para número 6
+            // Lógica para número 6: ficha al pozo, NO pierde turno
             if (numero === 6) {
                 jugadorActual.casillas[6]++;
                 jugadorActual.fichas--;
+                mantieneTurno = true;   // ¡CORRECCIÓN! Mantiene turno
             }
             
             // Iluminar casilla
@@ -829,11 +846,10 @@
             // Verificar victoria
             if (jugadorActual.fichas === 0) {
                 terminarJuego(turnoActual);
-                return;
+                return false;
             }
             
-            // Siguiente turno
-            siguienteTurno();
+            return mantieneTurno;
         }
 
         function iluminarCasilla(numero) {
@@ -867,12 +883,19 @@
             if (!juegoActivo) return;
             
             // IA: estrategia simple - prefiere colocar en casillas vacías
-            const jugadorIA = jugadores[turnoActual];
             const numero = Math.floor(Math.random() * 6) + 1;
             
             // Animar el rodillo
             animarRodillo(numero, () => {
-                colocarFicha(numero);
+                const mantieneTurno = colocarFicha(numero);
+                if (!juegoActivo) return;
+                
+                if (mantieneTurno) {
+                    // La IA vuelve a tirar automáticamente
+                    setTimeout(() => turnoIA(), 1200);
+                } else {
+                    siguienteTurno();
+                }
             });
         }
 
@@ -902,6 +925,52 @@
         function reiniciarPartida() {
             document.getElementById('mensaje-victoria').style.display = 'none';
             iniciarJuego();
+        }
+
+        // ========================================
+        // SORTEO INICIAL
+        // ========================================
+        function iniciarSorteo() {
+            enSorteo = true;
+            juegoActivo = false;
+            indiceSorteo = 0;
+            document.getElementById('sorteo-info').style.display = 'block';
+            document.getElementById('boton').disabled = true;
+            actualizarTablero();
+            realizarTiradaSorteo();
+        }
+
+        function realizarTiradaSorteo() {
+            if (!enSorteo) return;
+            
+            const jugador = jugadores[indiceSorteo];
+            const numero = Math.floor(Math.random() * 6) + 1;
+            
+            document.getElementById('turno-indicador').textContent = `🎲 ${jugador.emoji} ${jugador.nombre} tira...`;
+            
+            animarRodillo(numero, () => {
+                if (numero === 6) {
+                    enSorteo = false;
+                    document.getElementById('sorteo-info').style.display = 'none';
+                    turnoActual = indiceSorteo;
+                    juegoActivo = true;
+                    actualizarPanelJugadores();
+                    actualizarTablero();
+                    
+                    if (jugadores[turnoActual].esIA) {
+                        document.getElementById('boton').disabled = true;
+                        document.getElementById('turno-indicador').textContent = `🤖 Turno de ${jugadores[turnoActual].nombre}`;
+                        setTimeout(() => turnoIA(), 1500);
+                    } else {
+                        document.getElementById('boton').disabled = false;
+                        document.getElementById('turno-indicador').textContent = '🎮 Tu turno';
+                        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    }
+                } else {
+                    indiceSorteo = (indiceSorteo + 1) % jugadores.length;
+                    setTimeout(() => realizarTiradaSorteo(), 800);
+                }
+            });
         }
 
         // ========================================
@@ -952,7 +1021,6 @@
                     clearInterval(intervaloActual);
                     slotMachine.classList.remove('vibrando');
                     
-                    // Posicionar número final
                     const desplazamientoFinal = (numeroFinal - 1) * 70;
                     rodillo.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
                     rodillo.style.transform = `translateY(-${desplazamientoFinal}px)`;
@@ -980,7 +1048,17 @@
             animarRodillo(numero, () => {
                 document.getElementById('resultado').textContent = `🎯 ${numero}`;
                 document.getElementById('resultado').style.display = 'block';
-                colocarFicha(numero);
+                
+                const mantieneTurno = colocarFicha(numero);
+                if (!juegoActivo) return;
+                
+                if (mantieneTurno) {
+                    boton.disabled = false;
+                    document.getElementById('turno-indicador').textContent = '🎮 ¡Sigues tirando!';
+                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                } else {
+                    siguienteTurno();
+                }
             });
         }
 
@@ -995,6 +1073,8 @@
         function mostrarPortada() {
             document.getElementById('mensaje-victoria').style.display = 'none';
             juegoActivo = false;
+            enSorteo = false;
+            document.getElementById('sorteo-info').style.display = 'none';
             mostrarPantalla('portada');
         }
 
@@ -1004,8 +1084,8 @@
 
         function iniciarJuego() {
             inicializarJugadores();
-            turnoActual = 0;
-            juegoActivo = true;
+            juegoActivo = false;
+            enSorteo = false;
             
             inicializarRodillo();
             crearPanelJugadores();
@@ -1013,13 +1093,15 @@
             
             document.getElementById('resultado').style.display = 'none';
             document.getElementById('mensaje-victoria').style.display = 'none';
-            document.getElementById('boton').disabled = false;
+            document.getElementById('boton').disabled = true;
             
             mostrarPantalla('juego');
             
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
+            
+            setTimeout(() => iniciarSorteo(), 500);
         }
 
         // Event Listeners
