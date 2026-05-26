@@ -3,47 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Juego</title>
+    <title>Factor 6 - Versión 2.0</title>
     <style>
-        body { margin: 0; background: #0f0f1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #tablero { position: relative; width: 320px; height: 320px; }
-        .numero-6 { position: absolute; top: 110px; left: 110px; width: 100px; height: 100px; background: radial-gradient(circle, #ffd700, #b8860b); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 2em; box-shadow: 0 0 20px #ffd700; }
-        .casilla { position: absolute; width: 60px; height: 60px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; transition: 0.5s; }
-        #log { position: fixed; bottom: 20px; font-size: 1.2em; color: #aaa; }
+        body { margin: 0; background: #050510; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #tablero { position: relative; width: 340px; height: 340px; }
+        
+        .numero-6 { position: absolute; top: 120px; left: 120px; width: 100px; height: 100px; background: #FFD700; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 2em; box-shadow: 0 0 20px #FFD700; z-index: 2;}
+
+        /* Colores específicos */
+        .c1 { background: #FF5733; top: 0px; left: 140px; }
+        .c2 { background: #FFC300; top: 60px; left: 260px; }
+        .c3 { background: #DAF7A6; top: 200px; left: 260px; }
+        .c4 { background: #33FFBD; top: 260px; left: 140px; }
+        .c5 { background: #3380FF; top: 200px; left: 20px; }
+
+        .casilla { position: absolute; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; transition: 0.3s; }
+        #log { position: fixed; bottom: 50px; font-size: 1.5em; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="tablero">
         <div class="numero-6" id="c6">6</div>
-        <div class="casilla" style="top: 0px; left: 130px;">1</div>
-        <div class="casilla" style="top: 65px; left: 260px;">2</div>
-        <div class="casilla" style="top: 215px; left: 260px;">3</div>
-        <div class="casilla" style="top: 260px; left: 130px;">4</div>
-        <div class="casilla" style="top: 150px; left: 0px;">5</div>
+        <div class="casilla c1">1</div>
+        <div class="casilla c2">2</div>
+        <div class="casilla c3">3</div>
+        <div class="casilla c4">4</div>
+        <div class="casilla c5">5</div>
     </div>
-    <div id="log">Agita el móvil para lanzar el dado</div>
+    <div id="log">Agita el móvil con fuerza</div>
 
     <script>
         const log = document.getElementById('log');
-        let ultimaAgitacion = 0;
-
-        window.addEventListener('devicemotion', (event) => {
-            const acc = event.accelerationIncludingGravity;
-            const total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-            if (total > 25 && Date.now() - ultimaAgitacion > 2000) {
-                ultimaAgitacion = Date.now();
-                const res = Math.floor(Math.random() * 6) + 1;
-                log.innerText = "Resultado: " + res;
-                iluminar(res);
+        
+        // Función para solicitar permiso de sensor (Específico para iOS/Brave)
+        function solicitarPermiso() {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(response => {
+                    if (response === 'granted') {
+                        activarJuego();
+                    }
+                });
+            } else {
+                activarJuego(); // Android estándar
             }
-        });
+        }
+
+        function activarJuego() {
+            let ultimaAgitacion = 0;
+            window.addEventListener('devicemotion', (event) => {
+                const acc = event.accelerationIncludingGravity;
+                const total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+                if (total > 20 && Date.now() - ultimaAgitacion > 2000) {
+                    ultimaAgitacion = Date.now();
+                    const res = Math.floor(Math.random() * 6) + 1;
+                    log.innerText = "Salió el: " + res;
+                    iluminar(res);
+                }
+            });
+        }
 
         function iluminar(n) {
             document.querySelectorAll('.casilla, .numero-6').forEach(el => el.style.border = "none");
-            if (n === 6) document.getElementById('c6').style.border = "3px solid white";
-            else document.querySelectorAll('.casilla')[n-1].style.border = "3px solid white";
+            const target = (n === 6) ? document.getElementById('c6') : document.querySelectorAll('.casilla')[n-1];
+            target.style.border = "5px solid white";
         }
+
+        // Tocar la pantalla para pedir permisos iniciales
+        document.body.addEventListener('click', solicitarPermiso, {once: true});
     </script>
 </body>
 </html>
