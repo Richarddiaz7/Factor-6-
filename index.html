@@ -2,195 +2,342 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factor 6 - Dado 3D</title>
+    <title>Factor 6 - Slot Machine</title>
     <style>
         body { 
             margin: 0; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #1a0033 0%, #2d004d 30%, #4a0072 70%, #1a0033 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; 
             height: 100vh; font-family: 'Arial', sans-serif; color: white;
             overflow: hidden;
         }
 
+        /* Partículas de fondo */
+        .particulas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particula {
+            position: absolute;
+            background: gold;
+            border-radius: 50%;
+            animation: caer linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes caer {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
         #tablero { 
             display: flex; flex-direction: column; align-items: center; gap: 15px; 
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .fila-superior { display: flex; gap: 15px; }
-        .cuadrado { 
-            width: 60px; height: 60px; 
-            display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; font-size: 1.5em;
-            border-radius: 12px; color: white; 
-            transition: all 0.5s ease; 
-            border: 3px solid transparent; 
+            background: rgba(0,0,0,0.6);
+            padding: 25px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 30px rgba(255,215,0,0.3);
             position: relative;
+            z-index: 1;
+        }
+
+        .titulo-tablero {
+            font-size: 1.2em;
+            color: #FFD700;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .fila-superior { 
+            display: flex; 
+            gap: 15px; 
+        }
+
+        .cuadrado { 
+            width: 70px; 
+            height: 70px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-weight: bold; 
+            font-size: 2em;
+            border-radius: 15px; 
+            color: white; 
+            transition: all 0.3s ease; 
+            border: 3px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.5);
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
         
         #c6 { 
-            width: 180px; height: 70px; 
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); 
-            display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; font-size: 2em; 
+            width: 200px; 
+            height: 80px; 
+            background: linear-gradient(135deg, #B8860B, #FFD700);
+            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-weight: bold; 
+            font-size: 2.5em; 
             color: #000; 
-            transition: all 0.5s ease; 
-            border: 3px solid transparent; 
+            transition: all 0.3s ease; 
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
         }
 
         .c1 { background: linear-gradient(135deg, #FF5733, #C70039); }
-        .c2 { background: linear-gradient(135deg, #FFC300, #FF5733); }
-        .c3 { background: linear-gradient(135deg, #DAF7A6, #33FF57); }
-        .c4 { background: linear-gradient(135deg, #33FFBD, #00B4D8); }
-        .c5 { background: linear-gradient(135deg, #3380FF, #6B5B95); }
+        .c2 { background: linear-gradient(135deg, #FFC300, #FF8C00); }
+        .c3 { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
+        .c4 { background: linear-gradient(135deg, #2196F3, #1565C0); }
+        .c5 { background: linear-gradient(135deg, #9C27B0, #6A1B9A); }
 
-        #dado-container {
-            perspective: 1000px;
-            width: 250px;
-            height: 250px;
-            margin: 20px 0;
-        }
-
-        #dado {
-            width: 100%;
-            height: 100%;
+        /* Máquina tragamonedas */
+        .slot-machine {
+            background: linear-gradient(180deg, #2a0040 0%, #1a0030 50%, #0d0020 100%);
+            border: 8px solid #FFD700;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 
+                0 0 50px rgba(255,215,0,0.5),
+                0 0 100px rgba(255,215,0,0.3),
+                inset 0 0 30px rgba(255,215,0,0.1);
             position: relative;
-            transform-style: preserve-3d;
-            transition: transform 3s cubic-bezier(0.1, 0.8, 0.2, 1.2);
+            z-index: 1;
         }
 
-        .cara {
+        .slot-ventana {
+            background: #000;
+            border: 5px solid #B8860B;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slot-ventana::before {
+            content: '';
             position: absolute;
-            width: 200px;
-            height: 200px;
-            left: 25px;
-            top: 25px;
-            border-radius: 25px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .rodillos-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .rodillo {
+            width: 100px;
+            height: 120px;
+            background: #1a1a1a;
+            border: 3px solid #333;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .numeros-rodillo {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s linear;
+        }
+
+        .numero-rodillo {
+            width: 100%;
+            height: 120px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 4em;
+            font-size: 3.5em;
             font-weight: 900;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            border: 4px solid rgba(255,255,255,0.5);
-            box-shadow: inset 0 0 30px rgba(255,255,255,0.3);
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+            background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+            border-bottom: 2px solid #333;
         }
 
-        .cara.frente  { 
-            transform: translateZ(100px); 
-            background: linear-gradient(135deg, #FF5733, #C70039);
-        }
-        .cara.atras   { 
-            transform: rotateY(180deg) translateZ(100px); 
-            background: linear-gradient(135deg, #DAF7A6, #33FF57);
-        }
-        .cara.derecha { 
-            transform: rotateY(90deg) translateZ(100px); 
-            background: linear-gradient(135deg, #3380FF, #6B5B95);
-        }
-        .cara.izquierda { 
-            transform: rotateY(-90deg) translateZ(100px); 
-            background: linear-gradient(135deg, #FFC300, #FF5733);
-        }
-        .cara.arriba  { 
-            transform: rotateX(90deg) translateZ(100px); 
-            background: linear-gradient(135deg, #33FFBD, #00B4D8);
-        }
-        .cara.abajo   { 
-            transform: rotateX(-90deg) translateZ(100px); 
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #000;
+        .marcador-central {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 120px;
+            border-top: 4px solid #FFD700;
+            border-bottom: 4px solid #FFD700;
+            transform: translateY(-50%);
+            z-index: 3;
+            pointer-events: none;
+            box-shadow: 
+                0 0 20px rgba(255,215,0,0.5),
+                inset 0 0 20px rgba(255,215,0,0.2);
         }
 
-        .puntos {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            width: 80%;
-            height: 80%;
-            gap: 10px;
+        .luces-laterales {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            z-index: 4;
         }
 
-        .punto {
-            width: 25px;
-            height: 25px;
-            background: white;
+        .luces-izquierda {
+            left: -30px;
+        }
+
+        .luces-derecha {
+            right: -30px;
+        }
+
+        .luz {
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
+            background: #FFD700;
+            box-shadow: 0 0 15px #FFD700;
+            animation: parpadear 0.5s infinite alternate;
+        }
+
+        .luz:nth-child(even) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes parpadear {
+            from { opacity: 0.3; box-shadow: 0 0 5px #FFD700; }
+            to { opacity: 1; box-shadow: 0 0 20px #FFD700, 0 0 30px #FFD700; }
+        }
+
+        .palanca-container {
             display: flex;
             justify-content: center;
-            align-items: center;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            margin-top: 20px;
         }
 
         .btn-lanzar { 
             padding: 18px 50px; 
             font-size: 1.3em; 
-            background: linear-gradient(135deg, #fff, #e0e0e0);
-            border: none; 
+            background: linear-gradient(180deg, #FFD700, #B8860B);
+            border: 3px solid #FFD700;
             border-radius: 50px; 
             cursor: pointer; 
             font-weight: bold; 
-            color: #0f3460; 
+            color: #1a0030; 
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            box-shadow: 
+                0 5px 20px rgba(255,215,0,0.5),
+                inset 0 -5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-lanzar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: transform 0.5s;
+        }
+
+        .btn-lanzar:hover::before {
+            transform: rotate(45deg) translate(100%, 100%);
         }
         
         .btn-lanzar:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(255,255,255,0.3);
+            box-shadow: 0 8px 30px rgba(255,215,0,0.8);
         }
         
         .btn-lanzar:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: translateY(0);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: none;
         }
 
         .iluminado { 
             border-color: #FFD700 !important; 
-            transform: scale(1.2); 
-            box-shadow: 0 0 30px #FFD700, 0 0 60px rgba(255,215,0,0.5), 0 0 90px rgba(255,215,0,0.3); 
-            animation: brillo 0.8s ease-in-out infinite alternate;
+            transform: scale(1.15); 
+            box-shadow: 
+                0 0 30px #FFD700, 
+                0 0 60px rgba(255,215,0,0.5), 
+                0 0 90px rgba(255,215,0,0.3),
+                inset 0 0 30px rgba(255,215,0,0.3) !important; 
+            animation: brillo 0.5s ease-in-out infinite alternate;
             z-index: 10;
         }
         
         @keyframes brillo {
             0% { 
                 box-shadow: 0 0 20px #FFD700, 0 0 40px rgba(255,215,0,0.5);
-                border-width: 3px;
             }
             100% { 
-                box-shadow: 0 0 40px #FFD700, 0 0 80px rgba(255,215,0,0.7), 0 0 120px rgba(255,215,0,0.5);
-                border-width: 5px;
+                box-shadow: 0 0 50px #FFD700, 0 0 80px rgba(255,215,0,0.7), 0 0 120px rgba(255,215,0,0.5);
             }
         }
 
-        .numero-grande {
-            font-size: 5em;
-            font-weight: 900;
+        .mensaje-ganador {
+            font-size: 2em;
+            color: #FFD700;
+            text-shadow: 0 0 20px #FFD700;
+            font-weight: bold;
+            display: none;
+            animation: aparecer 0.5s ease-out;
         }
 
-        @keyframes temblor {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-
-        .temblando {
-            animation: temblor 0.1s infinite;
+        @keyframes aparecer {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- Partículas de fondo -->
+    <div class="particulas" id="particulas"></div>
+
     <div id="tablero">
+        <div class="titulo-tablero">🎯 Números Ganadores</div>
         <div class="fila-superior">
             <div class="cuadrado c1">1</div>
             <div class="cuadrado c2">2</div>
@@ -201,128 +348,178 @@
         <div id="c6">6</div>
     </div>
 
-    <div id="dado-container">
-        <div id="dado">
-            <div class="cara frente">
-                <div class="puntos">
-                    <div></div><div></div><div></div>
-                    <div></div><div class="punto"></div><div></div>
-                    <div></div><div></div><div></div>
+    <div class="slot-machine">
+        <div class="luces-laterales luces-izquierda">
+            <div class="luz"></div><div class="luz"></div><div class="luz"></div>
+            <div class="luz"></div><div class="luz"></div><div class="luz"></div>
+        </div>
+        
+        <div class="slot-ventana">
+            <div class="marcador-central"></div>
+            <div class="rodillos-container">
+                <div class="rodillo" id="rodillo1">
+                    <div class="numeros-rodillo" id="numeros1"></div>
                 </div>
-            </div>
-            <div class="cara atras">
-                <div class="puntos">
-                    <div class="punto"></div><div></div><div></div>
-                    <div></div><div></div><div></div>
-                    <div></div><div></div><div class="punto"></div>
+                <div class="rodillo" id="rodillo2">
+                    <div class="numeros-rodillo" id="numeros2"></div>
                 </div>
-            </div>
-            <div class="cara derecha">
-                <div class="puntos">
-                    <div></div><div></div><div class="punto"></div>
-                    <div></div><div class="punto"></div><div></div>
-                    <div class="punto"></div><div></div><div></div>
-                </div>
-            </div>
-            <div class="cara izquierda">
-                <div class="puntos">
-                    <div class="punto"></div><div></div><div class="punto"></div>
-                    <div></div><div></div><div></div>
-                    <div class="punto"></div><div></div><div class="punto"></div>
-                </div>
-            </div>
-            <div class="cara arriba">
-                <div class="puntos">
-                    <div class="punto"></div><div></div><div class="punto"></div>
-                    <div></div><div class="punto"></div><div></div>
-                    <div class="punto"></div><div></div><div class="punto"></div>
-                </div>
-            </div>
-            <div class="cara abajo">
-                <div class="puntos">
-                    <div class="punto"></div><div></div><div class="punto"></div>
-                    <div class="punto"></div><div></div><div class="punto"></div>
-                    <div class="punto"></div><div></div><div class="punto"></div>
+                <div class="rodillo" id="rodillo3">
+                    <div class="numeros-rodillo" id="numeros3"></div>
                 </div>
             </div>
         </div>
+        
+        <div class="luces-laterales luces-derecha">
+            <div class="luz"></div><div class="luz"></div><div class="luz"></div>
+            <div class="luz"></div><div class="luz"></div><div class="luz"></div>
+        </div>
+        
+        <div class="palanca-container">
+            <button class="btn-lanzar" id="boton" onclick="tirarPalanca()">🎰 ¡TIRAR! 🎰</button>
+        </div>
     </div>
 
-    <button class="btn-lanzar" id="boton" onclick="lanzarDado()">🎲 Lanzar Dado</button>
+    <div class="mensaje-ganador" id="mensaje"></div>
 
     <script>
-        const dado = document.getElementById('dado');
-        let rotacionX = 0;
-        let rotacionY = 0;
-        let lanzando = false;
+        // Crear partículas de fondo
+        function crearParticulas() {
+            const container = document.getElementById('particulas');
+            for (let i = 0; i < 20; i++) {
+                const particula = document.createElement('div');
+                particula.className = 'particula';
+                particula.style.left = Math.random() * 100 + '%';
+                particula.style.width = Math.random() * 5 + 2 + 'px';
+                particula.style.height = particula.style.width;
+                particula.style.animationDuration = Math.random() * 5 + 5 + 's';
+                particula.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(particula);
+            }
+        }
+        crearParticulas();
 
-        function lanzarDado() {
-            if (lanzando) return;
+        // Inicializar rodillos
+        const rodillos = ['numeros1', 'numeros2', 'numeros3'];
+        let intervalos = [];
+        let resultadoFinal = 0;
+
+        function inicializarRodillo(id) {
+            const rodillo = document.getElementById(id);
+            rodillo.innerHTML = '';
             
+            // Crear secuencia de números (múltiples vueltas para animación fluida)
+            const secuencia = [];
+            for (let i = 0; i < 20; i++) {
+                secuencia.push(Math.floor(Math.random() * 6) + 1);
+            }
+            
+            secuencia.forEach(num => {
+                const div = document.createElement('div');
+                div.className = 'numero-rodillo';
+                div.textContent = num;
+                rodillo.appendChild(div);
+            });
+            
+            return secuencia;
+        }
+
+        function inicializarTodos() {
+            rodillos.forEach(id => inicializarRodillo(id));
+        }
+        inicializarTodos();
+
+        function tirarPalanca() {
             const boton = document.getElementById('boton');
-            boton.disabled = true;
-            lanzando = true;
+            if (boton.disabled) return;
             
-            // Limpiar iluminaciones anteriores
+            boton.disabled = true;
+            document.getElementById('mensaje').style.display = 'none';
+            
+            // Limpiar iluminaciones
             document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
             
-            // Elegir un número aleatorio del 1 al 6
-            const numeroResultado = Math.floor(Math.random() * 6) + 1;
-            console.log('Resultado:', numeroResultado);
+            // Elegir número ganador aleatorio
+            resultadoFinal = Math.floor(Math.random() * 6) + 1;
+            console.log('Resultado:', resultadoFinal);
             
-            // Configurar rotaciones para cada número
-            // Cada número corresponde a una cara específica
-            const configuraciones = {
-                1: { x: 0, y: 0 },                    // frente (1 punto)
-                2: { x: 0, y: 90 },                   // derecha (2 puntos)
-                3: { x: -90, y: 0 },                  // abajo (3 puntos)
-                4: { x: 90, y: 0 },                   // arriba (4 puntos)
-                5: { x: 0, y: -90 },                  // izquierda (5 puntos)
-                6: { x: 0, y: 180 }                   // atrás (6 puntos)
-            };
+            // Detener intervalos anteriores
+            intervalos.forEach(clearInterval);
+            intervalos = [];
             
-            // Obtener la configuración para el número resultado
-            const config = configuraciones[numeroResultado];
+            // Velocidades diferentes para cada rodillo
+            const velocidades = [30, 40, 50]; // ms entre cambios
             
-            // Agregar múltiples vueltas completas para hacer la animación más dramática
-            const vueltasExtraX = (Math.floor(Math.random() * 3) + 3) * 360;
-            const vueltasExtraY = (Math.floor(Math.random() * 3) + 3) * 360;
-            
-            rotacionX = config.x + vueltasExtraX;
-            rotacionY = config.y + vueltasExtraY;
-            
-            // Agregar efecto de temblor antes de girar
-            dado.classList.add('temblando');
-            
-            setTimeout(() => {
-                dado.classList.remove('temblando');
+            // Iniciar giro de cada rodillo
+            rodillos.forEach((id, index) => {
+                const rodillo = document.getElementById(id);
+                const secuencia = inicializarRodillo(id);
+                let posicion = 0;
+                let contadorVueltas = 0;
+                const vueltasNecesarias = 5 + index; // Cada rodillo da más vueltas
                 
-                // Aplicar la rotación final
-                dado.style.transform = `rotateX(${rotacionX}deg) rotateY(${rotacionY}deg)`;
-                
-                // Iluminar después de que termine el giro
-                setTimeout(() => {
-                    iluminar(numeroResultado);
-                    boton.disabled = false;
-                    lanzando = false;
+                const intervalo = setInterval(() => {
+                    // Mover el rodillo hacia arriba
+                    const desplazamiento = posicion * 120; // 120px por número
+                    rodillo.style.transform = `translateY(-${desplazamiento}px)`;
                     
-                    // Pequeño rebote después del aterrizaje
-                    dado.style.transition = 'transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-                    setTimeout(() => {
-                        dado.style.transform = `rotateX(${config.x + vueltasExtraX + 5}deg) rotateY(${config.y + vueltasExtraY + 5}deg)`;
+                    posicion++;
+                    
+                    // Si llegamos al final, reiniciamos
+                    if (posicion >= secuencia.length) {
+                        posicion = 0;
+                        contadorVueltas++;
+                        inicializarRodillo(id);
+                    }
+                    
+                    // Detener el rodillo cuando haya dado suficientes vueltas
+                    if (contadorVueltas >= vueltasNecesarias && index === rodillos.length - 1) {
+                        clearInterval(intervalo);
+                        finalizarGiro();
+                    } else if (contadorVueltas >= vueltasNecesarias) {
+                        clearInterval(intervalo);
+                        // Posicionar en el número correcto
                         setTimeout(() => {
-                            dado.style.transform = `rotateX(${config.x + vueltasExtraX}deg) rotateY(${config.y + vueltasExtraY}deg)`;
-                            dado.style.transition = 'transform 3s cubic-bezier(0.1, 0.8, 0.2, 1.2)';
-                        }, 150);
-                    }, 100);
-                    
-                }, 3200);
+                            posicionarRodillo(rodillo, resultadoFinal);
+                        }, 100 * index);
+                    }
+                }, velocidades[index]);
                 
-            }, 500);
+                intervalos.push(intervalo);
+            });
+        }
+
+        function posicionarRodillo(rodillo, numero) {
+            // Mover al número correcto
+            const desplazamiento = (numero - 1) * 120;
+            rodillo.style.transition = 'transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            rodillo.style.transform = `translateY(-${desplazamiento}px)`;
+        }
+
+        function finalizarGiro() {
+            // Posicionar todos los rodillos en el número ganador
+            rodillos.forEach((id, index) => {
+                const rodillo = document.getElementById(id);
+                setTimeout(() => {
+                    posicionarRodillo(rodillo, resultadoFinal);
+                }, 200 * index);
+            });
+            
+            // Iluminar el número ganador
+            setTimeout(() => {
+                iluminar(resultadoFinal);
+                document.getElementById('boton').disabled = false;
+                
+                // Mostrar mensaje de ganador
+                const mensaje = document.getElementById('mensaje');
+                mensaje.textContent = `¡Número ${resultadoFinal}! 🎉`;
+                mensaje.style.display = 'block';
+                
+                // Efecto de celebración
+                crearEfectoCelebracion();
+            }, 1500);
         }
 
         function iluminar(n) {
-            console.log('Iluminando número:', n);
             document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
             
             if (n === 6) {
@@ -335,11 +532,32 @@
             }
         }
 
-        // Permitir lanzar el dado con la tecla espacio
+        function crearEfectoCelebracion() {
+            const container = document.getElementById('particulas');
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const particula = document.createElement('div');
+                    particula.className = 'particula';
+                    particula.style.left = Math.random() * 100 + '%';
+                    particula.style.top = '50%';
+                    particula.style.width = Math.random() * 8 + 3 + 'px';
+                    particula.style.height = particula.style.width;
+                    particula.style.animationDuration = Math.random() * 2 + 2 + 's';
+                    particula.style.background = `hsl(${Math.random() * 60 + 30}, 100%, 50%)`;
+                    container.appendChild(particula);
+                    
+                    setTimeout(() => {
+                        particula.remove();
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+
+        // Permitir tirar con la tecla espacio
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !lanzando) {
+            if (e.code === 'Space') {
                 e.preventDefault();
-                lanzarDado();
+                tirarPalanca();
             }
         });
     </script>
