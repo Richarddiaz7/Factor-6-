@@ -2,50 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Versión Definitiva</title>
+    <title>Factor 6 - Versión Animada</title>
     <style>
-        body { 
-            margin: 0; 
-            background: linear-gradient(180deg, #001f3f 0%, #000000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; font-family: sans-serif; color: white;
-        }
-
-        /* Banderas */
+        body { margin: 0; background: linear-gradient(180deg, #001f3f 0%, #000000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: white; }
         .bandera { position: absolute; top: 15px; width: 50px; height: 30px; background: linear-gradient(to bottom, #ffcc00 33.3%, #003399 33.3% 66.6%, #cf142b 66.6%); opacity: 0.7; border-radius: 3px; }
         .bandera-izq { left: 15px; } .bandera-der { right: 15px; }
 
-        /* Tablero */
         #tablero { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .fila-superior { display: flex; gap: 10px; }
-        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.2s; border: 4px solid transparent; }
-        
-        /* 6 Fijo con Clip-path para que no se deforme */
-        #c6 { 
-            width: 150px; height: 70px; background: #FFD700; 
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
-            display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: black;
-            transition: 0.2s; border: 4px solid transparent; margin-top: 10px;
-        }
+        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.3s; border: 4px solid transparent; }
+        #c6 { width: 150px; height: 70px; background: #FFD700; clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; border: 4px solid transparent; margin-top: 10px; }
 
-        /* Colores */
         .c1 { background-color: #FF5733; } .c2 { background-color: #FFC300; } .c3 { background-color: #DAF7A6; } .c4 { background-color: #33FFBD; } .c5 { background-color: #3380FF; }
 
-        /* Botón y Dado */
-        #dado { font-size: 4em; cursor: pointer; margin-bottom: 20px; }
+        #dado { font-size: 5em; margin-bottom: 20px; cursor: pointer; }
         .btn-lanzar { padding: 15px 30px; font-size: 1.2em; background: #fff; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        
-        .iluminado { border-color: white !important; transform: scale(1.05); box-shadow: 0 0 20px white; }
+        .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
     </style>
 </head>
 <body>
-
     <div class="bandera bandera-izq"></div>
     <div class="bandera bandera-der"></div>
 
     <div id="dado">🎲</div>
-    <button class="btn-lanzar" onclick="lanzar()">Lanzar Dado</button>
+    <button class="btn-lanzar" id="boton" onclick="iniciarLanzamiento()">Lanzar Dado</button>
 
     <div id="tablero">
         <div class="fila-superior">
@@ -59,9 +39,23 @@
     </div>
 
     <script>
-        function lanzar() {
-            const res = Math.floor(Math.random() * 6) + 1;
-            iluminar(res);
+        const carasDado = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        const boton = document.getElementById('boton');
+
+        function iniciarLanzamiento() {
+            boton.disabled = true;
+            let contador = 0;
+            const intervalo = setInterval(() => {
+                document.getElementById('dado').innerText = carasDado[Math.floor(Math.random() * 6)];
+                contador++;
+                if (contador > 10) {
+                    clearInterval(intervalo);
+                    const res = Math.floor(Math.random() * 6) + 1;
+                    document.getElementById('dado').innerText = carasDado[res-1];
+                    iluminar(res);
+                    boton.disabled = false;
+                }
+            }, 100);
         }
 
         function iluminar(n) {
