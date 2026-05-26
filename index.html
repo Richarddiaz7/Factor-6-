@@ -2,135 +2,189 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factor 6 - Ruleta Arreglada</title>
+    <title>Factor 6 - Dado 3D</title>
     <style>
         body { 
             margin: 0; 
-            background: linear-gradient(to bottom, #87CEEB 0%, #000080 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; 
-            height: 100vh; font-family: sans-serif; color: white;
-        }
-
-        #tablero { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .fila-superior { display: flex; gap: 10px; }
-        .cuadrado { 
-            width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; border-radius: 8px; color: black; transition: 0.3s; 
-            border: 4px solid transparent; 
-        }
-        #c6 { 
-            width: 150px; height: 60px; background: #FFD700; 
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); 
-            display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; 
-            border: 4px solid transparent; 
-        }
-
-        .c1 { background-color: #FF5733; } 
-        .c2 { background-color: #FFC300; } 
-        .c3 { background-color: #DAF7A6; } 
-        .c4 { background-color: #33FFBD; } 
-        .c5 { background-color: #3380FF; }
-
-        #ruleta-container { 
-            position: relative; 
-            width: 250px; 
-            height: 250px; 
-        }
-        
-        #flecha { 
-            position: absolute; 
-            top: -30px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent; 
-            border-right: 20px solid transparent; 
-            border-top: 35px solid #FFD700; 
-            z-index: 10; 
-        }
-        
-        #ruleta { 
-            width: 250px; 
-            height: 250px; 
-            border-radius: 50%; 
-            border: 8px solid white;
-            position: relative;
-            transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1);
+            height: 100vh; font-family: 'Arial', sans-serif; color: white;
             overflow: hidden;
         }
 
-        /* Segmentos de colores */
-        .segmento {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: 100% 100%;
-            left: 0;
-            top: 0;
+        #tablero { 
+            display: flex; flex-direction: column; align-items: center; gap: 15px; 
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .fila-superior { display: flex; gap: 15px; }
+        .cuadrado { 
+            width: 60px; height: 60px; 
+            display: flex; justify-content: center; align-items: center; 
+            font-weight: bold; font-size: 1.5em;
+            border-radius: 12px; color: white; 
+            transition: all 0.5s ease; 
+            border: 3px solid transparent; 
+            position: relative;
+        }
+        
+        #c6 { 
+            width: 180px; height: 70px; 
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); 
+            display: flex; justify-content: center; align-items: center; 
+            font-weight: bold; font-size: 2em; 
+            color: #000; 
+            transition: all 0.5s ease; 
+            border: 3px solid transparent; 
         }
 
-        .seg-1 { background: #FF5733; transform: rotate(0deg); }
-        .seg-2 { background: #FFC300; transform: rotate(60deg); }
-        .seg-3 { background: #DAF7A6; transform: rotate(120deg); }
-        .seg-4 { background: #33FFBD; transform: rotate(180deg); }
-        .seg-5 { background: #3380FF; transform: rotate(240deg); }
-        .seg-6 { background: #FFD700; transform: rotate(300deg); }
+        .c1 { background: linear-gradient(135deg, #FF5733, #C70039); }
+        .c2 { background: linear-gradient(135deg, #FFC300, #FF5733); }
+        .c3 { background: linear-gradient(135deg, #DAF7A6, #33FF57); }
+        .c4 { background: linear-gradient(135deg, #33FFBD, #00B4D8); }
+        .c5 { background: linear-gradient(135deg, #3380FF, #6B5B95); }
 
-        /* Contenedor de número */
-        .numero-container {
-            position: absolute;
+        #dado-container {
+            perspective: 1000px;
+            width: 250px;
+            height: 250px;
+            margin: 20px 0;
+        }
+
+        #dado {
             width: 100%;
             height: 100%;
-            left: 0;
-            top: 0;
-            transform-origin: 100% 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 3s cubic-bezier(0.1, 0.8, 0.2, 1.2);
         }
 
-        .numero-txt { 
+        .cara {
             position: absolute;
-            left: 65%;
-            top: 15%;
-            font-weight: 900; 
-            color: #000; 
-            font-size: 2em;
-            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            left: 25px;
+            top: 25px;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            border: 4px solid rgba(255,255,255,0.5);
+            box-shadow: inset 0 0 30px rgba(255,255,255,0.3);
+        }
+
+        .cara.frente  { 
+            transform: translateZ(100px); 
+            background: linear-gradient(135deg, #FF5733, #C70039);
+        }
+        .cara.atras   { 
+            transform: rotateY(180deg) translateZ(100px); 
+            background: linear-gradient(135deg, #DAF7A6, #33FF57);
+        }
+        .cara.derecha { 
+            transform: rotateY(90deg) translateZ(100px); 
+            background: linear-gradient(135deg, #3380FF, #6B5B95);
+        }
+        .cara.izquierda { 
+            transform: rotateY(-90deg) translateZ(100px); 
+            background: linear-gradient(135deg, #FFC300, #FF5733);
+        }
+        .cara.arriba  { 
+            transform: rotateX(90deg) translateZ(100px); 
+            background: linear-gradient(135deg, #33FFBD, #00B4D8);
+        }
+        .cara.abajo   { 
+            transform: rotateX(-90deg) translateZ(100px); 
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .puntos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 80%;
+            height: 80%;
+            gap: 10px;
+        }
+
+        .punto {
+            width: 25px;
+            height: 25px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
         }
 
         .btn-lanzar { 
-            padding: 15px 40px; 
-            font-size: 1.2em; 
-            background: #fff; 
+            padding: 18px 50px; 
+            font-size: 1.3em; 
+            background: linear-gradient(135deg, #fff, #e0e0e0);
             border: none; 
-            border-radius: 30px; 
+            border-radius: 50px; 
             cursor: pointer; 
             font-weight: bold; 
-            color: #000080; 
-            transition: 0.3s;
+            color: #0f3460; 
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
         
         .btn-lanzar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255,255,255,0.3);
         }
         
         .btn-lanzar:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: scale(1);
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        
+
         .iluminado { 
-            border-color: white !important; 
-            transform: scale(1.15); 
-            box-shadow: 0 0 25px white, 0 0 50px rgba(255,255,255,0.5); 
-            animation: brillo 0.5s ease-in-out infinite alternate;
+            border-color: #FFD700 !important; 
+            transform: scale(1.2); 
+            box-shadow: 0 0 30px #FFD700, 0 0 60px rgba(255,215,0,0.5), 0 0 90px rgba(255,215,0,0.3); 
+            animation: brillo 0.8s ease-in-out infinite alternate;
+            z-index: 10;
         }
         
         @keyframes brillo {
-            from { box-shadow: 0 0 15px white; }
-            to { box-shadow: 0 0 35px white, 0 0 60px rgba(255,255,255,0.7); }
+            0% { 
+                box-shadow: 0 0 20px #FFD700, 0 0 40px rgba(255,215,0,0.5);
+                border-width: 3px;
+            }
+            100% { 
+                box-shadow: 0 0 40px #FFD700, 0 0 80px rgba(255,215,0,0.7), 0 0 120px rgba(255,215,0,0.5);
+                border-width: 5px;
+            }
+        }
+
+        .numero-grande {
+            font-size: 5em;
+            font-weight: 900;
+        }
+
+        @keyframes temblor {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .temblando {
+            animation: temblor 0.1s infinite;
         }
     </style>
 </head>
@@ -147,97 +201,124 @@
         <div id="c6">6</div>
     </div>
 
-    <div id="ruleta-container">
-        <div id="flecha"></div>
-        <div id="ruleta">
-            <!-- Segmento 1 -->
-            <div class="segmento seg-1"></div>
-            <div class="numero-container" style="transform: rotate(30deg);">
-                <span class="numero-txt">1</span>
+    <div id="dado-container">
+        <div id="dado">
+            <div class="cara frente">
+                <div class="puntos">
+                    <div></div><div></div><div></div>
+                    <div></div><div class="punto"></div><div></div>
+                    <div></div><div></div><div></div>
+                </div>
             </div>
-            <!-- Segmento 2 -->
-            <div class="segmento seg-2"></div>
-            <div class="numero-container" style="transform: rotate(90deg);">
-                <span class="numero-txt">2</span>
+            <div class="cara atras">
+                <div class="puntos">
+                    <div class="punto"></div><div></div><div></div>
+                    <div></div><div></div><div></div>
+                    <div></div><div></div><div class="punto"></div>
+                </div>
             </div>
-            <!-- Segmento 3 -->
-            <div class="segmento seg-3"></div>
-            <div class="numero-container" style="transform: rotate(150deg);">
-                <span class="numero-txt">3</span>
+            <div class="cara derecha">
+                <div class="puntos">
+                    <div></div><div></div><div class="punto"></div>
+                    <div></div><div class="punto"></div><div></div>
+                    <div class="punto"></div><div></div><div></div>
+                </div>
             </div>
-            <!-- Segmento 4 -->
-            <div class="segmento seg-4"></div>
-            <div class="numero-container" style="transform: rotate(210deg);">
-                <span class="numero-txt">4</span>
+            <div class="cara izquierda">
+                <div class="puntos">
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                    <div></div><div></div><div></div>
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                </div>
             </div>
-            <!-- Segmento 5 -->
-            <div class="segmento seg-5"></div>
-            <div class="numero-container" style="transform: rotate(270deg);">
-                <span class="numero-txt">5</span>
+            <div class="cara arriba">
+                <div class="puntos">
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                    <div></div><div class="punto"></div><div></div>
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                </div>
             </div>
-            <!-- Segmento 6 -->
-            <div class="segmento seg-6"></div>
-            <div class="numero-container" style="transform: rotate(330deg);">
-                <span class="numero-txt">6</span>
+            <div class="cara abajo">
+                <div class="puntos">
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                    <div class="punto"></div><div></div><div class="punto"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <button class="btn-lanzar" id="boton" onclick="girarRuleta()">🎯 GIRAR 🎯</button>
+    <button class="btn-lanzar" id="boton" onclick="lanzarDado()">🎲 Lanzar Dado</button>
 
     <script>
-        const ruleta = document.getElementById('ruleta');
-        let gradosActuales = 0;
-        let girando = false;
+        const dado = document.getElementById('dado');
+        let rotacionX = 0;
+        let rotacionY = 0;
+        let lanzando = false;
 
-        function girarRuleta() {
-            if (girando) return;
+        function lanzarDado() {
+            if (lanzando) return;
             
             const boton = document.getElementById('boton');
             boton.disabled = true;
-            girando = true;
+            lanzando = true;
             
             // Limpiar iluminaciones anteriores
             document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
             
             // Elegir un número aleatorio del 1 al 6
-            const numeroGanador = Math.floor(Math.random() * 6) + 1;
-            console.log('Número ganador:', numeroGanador);
+            const numeroResultado = Math.floor(Math.random() * 6) + 1;
+            console.log('Resultado:', numeroResultado);
             
-            // Calcular el ángulo para que el número quede bajo la flecha (arriba)
-            // La flecha está en la parte superior (12 en punto)
-            // Los segmentos empiezan en 0° (derecha, 3 en punto) y van en sentido horario
+            // Configurar rotaciones para cada número
+            // Cada número corresponde a una cara específica
+            const configuraciones = {
+                1: { x: 0, y: 0 },                    // frente (1 punto)
+                2: { x: 0, y: 90 },                   // derecha (2 puntos)
+                3: { x: -90, y: 0 },                  // abajo (3 puntos)
+                4: { x: 90, y: 0 },                   // arriba (4 puntos)
+                5: { x: 0, y: -90 },                  // izquierda (5 puntos)
+                6: { x: 0, y: 180 }                   // atrás (6 puntos)
+            };
             
-            // Posiciones de los centros de los segmentos en grados (donde están los números)
-            // Segmento 1: 30°, Segmento 2: 90°, Segmento 3: 150°, 
-            // Segmento 4: 210°, Segmento 5: 270°, Segmento 6: 330°
+            // Obtener la configuración para el número resultado
+            const config = configuraciones[numeroResultado];
             
-            const angulosNumeros = [30, 90, 150, 210, 270, 330]; // grados donde está cada número
-            const anguloDeseado = angulosNumeros[numeroGanador - 1];
+            // Agregar múltiples vueltas completas para hacer la animación más dramática
+            const vueltasExtraX = (Math.floor(Math.random() * 3) + 3) * 360;
+            const vueltasExtraY = (Math.floor(Math.random() * 3) + 3) * 360;
             
-            // Para que el número quede bajo la flecha (270° o -90°), necesitamos calcular la rotación
-            // Si el número está en anguloDeseado, y queremos que esté en 270° (arriba de la ruleta),
-            // necesitamos rotar: 270° - anguloDeseado
+            rotacionX = config.x + vueltasExtraX;
+            rotacionY = config.y + vueltasExtraY;
             
-            let rotacionNecesaria = 270 - anguloDeseado;
+            // Agregar efecto de temblor antes de girar
+            dado.classList.add('temblando');
             
-            // Ajustar para que siempre gire en la misma dirección y dé varias vueltas
-            let rotacionTotal = gradosActuales + 1440 + rotacionNecesaria; // 4 vueltas completas
-            
-            // Asegurar que siempre gire hacia adelante
-            while (rotacionTotal <= gradosActuales) {
-                rotacionTotal += 360;
-            }
-            
-            ruleta.style.transform = `rotate(${rotacionTotal}deg)`;
-            gradosActuales = rotacionTotal;
-            
-            // Iluminar después de que termine el giro
             setTimeout(() => {
-                iluminar(numeroGanador);
-                boton.disabled = false;
-                girando = false;
-            }, 4100);
+                dado.classList.remove('temblando');
+                
+                // Aplicar la rotación final
+                dado.style.transform = `rotateX(${rotacionX}deg) rotateY(${rotacionY}deg)`;
+                
+                // Iluminar después de que termine el giro
+                setTimeout(() => {
+                    iluminar(numeroResultado);
+                    boton.disabled = false;
+                    lanzando = false;
+                    
+                    // Pequeño rebote después del aterrizaje
+                    dado.style.transition = 'transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    setTimeout(() => {
+                        dado.style.transform = `rotateX(${config.x + vueltasExtraX + 5}deg) rotateY(${config.y + vueltasExtraY + 5}deg)`;
+                        setTimeout(() => {
+                            dado.style.transform = `rotateX(${config.x + vueltasExtraX}deg) rotateY(${config.y + vueltasExtraY}deg)`;
+                            dado.style.transition = 'transform 3s cubic-bezier(0.1, 0.8, 0.2, 1.2)';
+                        }, 150);
+                    }, 100);
+                    
+                }, 3200);
+                
+            }, 500);
         }
 
         function iluminar(n) {
@@ -248,9 +329,19 @@
                 document.getElementById('c6').classList.add('iluminado');
             } else {
                 const cuadrados = document.querySelectorAll('.cuadrado');
-                cuadrados[n - 1].classList.add('iluminado');
+                if (cuadrados[n - 1]) {
+                    cuadrados[n - 1].classList.add('iluminado');
+                }
             }
         }
+
+        // Permitir lanzar el dado con la tecla espacio
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !lanzando) {
+                e.preventDefault();
+                lanzarDado();
+            }
+        });
     </script>
 </body>
 </html>
