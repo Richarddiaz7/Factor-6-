@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Factor 6 - Mini App</title>
+    <title>Factor 6 - Multijugador IA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -19,142 +19,346 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: space-between; 
+            justify-content: center; 
             min-height: 100vh;
             height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
             color: white;
             overflow: hidden;
-            padding: 5px;
             user-select: none;
             -webkit-user-select: none;
         }
 
-        .particulas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .particula {
+        /* ============ PANTALLAS ============ */
+        .pantalla {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
             position: absolute;
-            background: gold;
-            border-radius: 50%;
-            animation: caer linear infinite;
-            opacity: 0;
+            top: 0;
+            left: 0;
         }
 
-        @keyframes caer {
-            0% { transform: translateY(-100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* ============ TABLERO DE JUEGO ============ */
-        #tablero-container {
-            width: 95%;
-            max-width: 450px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 20px;
-            padding: 15px;
-            border: 3px solid #FFD700;
-            box-shadow: 0 0 30px rgba(255,215,0,0.3);
-            z-index: 1;
-        }
-
-        .info-jugador {
+        .pantalla.activa {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin-bottom: 15px;
-            background: rgba(255,215,0,0.1);
-            border-radius: 10px;
-            border: 2px solid #FFD700;
         }
 
-        .fichas-contador {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.3em;
-            font-weight: bold;
+        /* ============ PORTADA ============ */
+        #portada {
+            background: linear-gradient(135deg, #1a0033 0%, #2d004d 40%, #4a0072 100%);
+            gap: 30px;
+        }
+
+        .logo-container {
+            text-align: center;
+            animation: flotar 3s ease-in-out infinite;
+        }
+
+        @keyframes flotar {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .logo-dado {
+            font-size: 8em;
+            filter: drop-shadow(0 0 30px rgba(255,215,0,0.8));
+        }
+
+        .titulo-juego {
+            font-size: 2.5em;
+            font-weight: 900;
             color: #FFD700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+            letter-spacing: 5px;
+            margin-top: 10px;
         }
 
-        .fichas-icono {
-            font-size: 1.5em;
+        .subtitulo {
+            font-size: 1em;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
         }
 
-        .fichas-numero {
-            background: #FFD700;
-            color: #000;
-            padding: 5px 15px;
-            border-radius: 20px;
+        .menu-botones {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .btn-menu {
+            padding: 18px 30px;
             font-size: 1.2em;
-            min-width: 40px;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-jugar {
+            background: linear-gradient(180deg, #FFD700, #B8860B);
+            color: #1a0030;
+            box-shadow: 0 5px 20px rgba(255,215,0,0.5);
+            border: 3px solid #FFD700;
+        }
+
+        .btn-instrucciones {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-oponentes {
+            background: linear-gradient(180deg, #9C27B0, #6A1B9A);
+            color: white;
+            border: 2px solid #BA68C8;
+            box-shadow: 0 5px 20px rgba(156,39,176,0.5);
+        }
+
+        .btn-menu:active {
+            transform: scale(0.95);
+        }
+
+        .selector-oponentes {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid rgba(255,215,0,0.3);
+            width: 80%;
+            max-width: 300px;
             text-align: center;
         }
 
-        .estado-juego {
+        .selector-oponentes h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .oponentes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .btn-oponente {
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-oponente.seleccionado {
+            background: rgba(255,215,0,0.3);
+            border-color: #FFD700;
+            box-shadow: 0 0 15px rgba(255,215,0,0.3);
+        }
+
+        /* ============ PANTALLA DE INSTRUCCIONES ============ */
+        #instrucciones {
+            background: rgba(0,0,0,0.95);
+            gap: 20px;
+            overflow-y: auto;
+            justify-content: flex-start;
+            padding-top: 40px;
+        }
+
+        .instrucciones-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid rgba(255,215,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+        }
+
+        .instrucciones-container h2 {
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .regla {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .regla h3 {
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .regla p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .btn-volver {
+            padding: 12px 30px;
+            background: #FFD700;
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 20px 0;
+        }
+
+        /* ============ PANTALLA DE JUEGO ============ */
+        #juego {
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            gap: 5px;
+        }
+
+        /* Panel de jugadores */
+        .panel-jugadores {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .jugador-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            min-width: 80px;
+            flex: 1;
+            max-width: 120px;
+        }
+
+        .jugador-card.activo {
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+            animation: brillo 0.5s ease-in-out infinite alternate;
+        }
+
+        .jugador-card.ia {
+            border-color: #BA68C8;
+        }
+
+        .jugador-card.ia.activo {
+            border-color: #BA68C8;
+            box-shadow: 0 0 20px rgba(156,39,176,0.5);
+            animation: brilloIA 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes brilloIA {
+            0% { box-shadow: 0 0 10px rgba(156,39,176,0.5); }
+            100% { box-shadow: 0 0 30px rgba(156,39,176,0.8); }
+        }
+
+        .jugador-emoji {
+            font-size: 2em;
+        }
+
+        .jugador-nombre {
+            font-weight: bold;
+            color: #FFD700;
+            font-size: 0.8em;
+            margin: 5px 0;
+        }
+
+        .jugador-fichas {
+            background: rgba(255,215,0,0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
             font-size: 0.9em;
             color: #FFD700;
             font-weight: bold;
         }
 
-        #tablero {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .ia .jugador-nombre {
+            color: #BA68C8;
+        }
+
+        .ia .jugador-fichas {
+            background: rgba(156,39,176,0.2);
+            color: #BA68C8;
+        }
+
+        /* Tablero */
+        #tablero-container {
+            width: 95%;
+            max-width: 500px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            padding: 10px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 30px rgba(255,215,0,0.3);
         }
 
         .fila-superior {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .cuadrado {
-            width: 75px;
-            height: 95px;
+            width: 60px;
+            height: 80px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 2em;
-            border-radius: 15px;
+            font-size: 1.5em;
+            border-radius: 12px;
             color: white;
             transition: all 0.3s ease;
-            border: 3px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
             position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            gap: 5px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            gap: 3px;
         }
 
         .cuadrado .numero {
-            font-size: 0.7em;
+            font-size: 0.6em;
             font-weight: bold;
-            color: rgba(255,255,255,0.8);
         }
 
         .cuadrado .ficha {
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #FFD700, #B8860B);
-            border: 3px solid #FFA500;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 -3px 5px rgba(0,0,0,0.3);
+            border: 2px solid #FFA500;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
             display: none;
             animation: colocarFicha 0.3s ease-out;
         }
 
         @keyframes colocarFicha {
-            from { transform: scale(0) translateY(-20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         .cuadrado.ocupado .ficha {
@@ -163,18 +367,18 @@
 
         .cuadrado.ocupado {
             border-color: #FFD700 !important;
-            box-shadow: 0 0 15px rgba(255,215,0,0.5), inset 0 0 15px rgba(255,215,0,0.2) !important;
+            box-shadow: 0 0 10px rgba(255,215,0,0.3);
         }
 
         #c6-container {
             display: flex;
             justify-content: center;
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
         #c6 {
-            width: 200px;
-            height: 90px;
+            width: 180px;
+            height: 75px;
             background: linear-gradient(135deg, #B8860B, #FFD700);
             clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
             display: flex;
@@ -182,24 +386,18 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 2em;
+            font-size: 1.5em;
             color: #000;
             transition: all 0.3s ease;
-            border: 3px solid #FFD700;
-            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+            border: 2px solid #FFD700;
             position: relative;
         }
 
-        #c6 .numero {
-            font-size: 0.6em;
-            color: rgba(0,0,0,0.7);
-        }
-
         #c6 .contador-pozo {
-            font-size: 0.7em;
+            font-size: 0.6em;
             background: rgba(0,0,0,0.3);
             color: white;
-            padding: 3px 12px;
+            padding: 2px 10px;
             border-radius: 10px;
             display: none;
         }
@@ -214,57 +412,44 @@
         .c4 { background: linear-gradient(135deg, #2196F3, #1565C0); }
         .c5 { background: linear-gradient(135deg, #9C27B0, #6A1B9A); }
 
-        /* ============ MÁQUINA DE JACKPOT ============ */
+        /* Máquina tragamonedas */
         .slot-machine {
             background: linear-gradient(180deg, #2a0040 0%, #1a0030 50%, #0d0020 100%);
-            border: 4px solid #FFD700;
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 0 25px rgba(255,215,0,0.5);
-            position: relative;
-            z-index: 1;
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             width: 95%;
             max-width: 350px;
         }
 
         .slot-ventana {
             background: #000;
-            border: 3px solid #B8860B;
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            border: 2px solid #B8860B;
+            border-radius: 10px;
+            padding: 8px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
             overflow: hidden;
             position: relative;
-            width: 120px;
-            height: 90px;
+            width: 100px;
+            height: 70px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .slot-ventana::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-            z-index: 2;
-            pointer-events: none;
-        }
-
         .rodillo-unico {
-            width: 90px;
-            height: 90px;
+            width: 70px;
+            height: 70px;
             background: #1a1a1a;
             border: 2px solid #333;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
             position: relative;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
         .numeros-rodillo {
@@ -275,11 +460,11 @@
 
         .numero-rodillo {
             width: 100%;
-            height: 90px;
+            height: 70px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 3em;
+            font-size: 2.5em;
             font-weight: 900;
             color: #FFD700;
             text-shadow: 0 0 10px rgba(255,215,0,0.8);
@@ -290,114 +475,48 @@
         .marcador-central {
             position: absolute;
             top: 50%; left: 0; right: 0;
-            height: 90px;
+            height: 70px;
             border-top: 2px solid #FFD700;
             border-bottom: 2px solid #FFD700;
             transform: translateY(-50%);
             z-index: 3;
             pointer-events: none;
-            box-shadow: 0 0 10px rgba(255,215,0,0.5);
-        }
-
-        .flechas-indicadoras {
-            position: absolute;
-            left: -25px; right: -25px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 4;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-        }
-
-        .flecha-indicadora {
-            width: 0; height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-        }
-
-        .flecha-izquierda {
-            border-right: 15px solid #FFD700;
-            filter: drop-shadow(0 0 5px rgba(255,215,0,0.8));
-        }
-
-        .flecha-derecha {
-            border-left: 15px solid #FFD700;
-            filter: drop-shadow(0 0 5px rgba(255,215,0,0.8));
-        }
-
-        .luces-laterales {
-            position: absolute;
-            top: 0; bottom: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            z-index: 4;
-        }
-
-        .luces-izquierda { left: -20px; }
-        .luces-derecha { right: -20px; }
-
-        .luz {
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            background: #FFD700;
-            box-shadow: 0 0 10px #FFD700;
-            animation: parpadear 0.5s infinite alternate;
-        }
-
-        .luz:nth-child(even) { animation-delay: 0.3s; }
-
-        @keyframes parpadear {
-            from { opacity: 0.2; box-shadow: 0 0 5px #FFD700; }
-            to { opacity: 1; box-shadow: 0 0 15px #FFD700; }
         }
 
         .btn-lanzar { 
-            padding: 12px 30px; 
-            font-size: 1em; 
+            padding: 10px 25px; 
+            font-size: 0.9em; 
             background: linear-gradient(180deg, #FFD700, #B8860B);
             border: 2px solid #FFD700;
-            border-radius: 25px; 
+            border-radius: 20px; 
             cursor: pointer; 
             font-weight: bold; 
             color: #1a0030; 
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 5px 15px rgba(255,215,0,0.5);
-            width: 100%;
-            max-width: 200px;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 10px rgba(255,215,0,0.5);
         }
         
-        .btn-lanzar:active { transform: scale(0.95); }
-        .btn-lanzar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-lanzar:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .iluminado { 
             border-color: #FFD700 !important; 
-            transform: scale(1.1); 
-            box-shadow: 0 0 30px #FFD700, 0 0 60px rgba(255,215,0,0.5), inset 0 0 20px rgba(255,215,0,0.3) !important; 
-            animation: brillo 0.5s ease-in-out infinite alternate;
-            z-index: 10;
+            box-shadow: 0 0 20px #FFD700 !important; 
+            animation: brilloCasilla 0.5s ease-in-out infinite alternate;
         }
-        
-        @keyframes brillo {
-            0% { box-shadow: 0 0 15px #FFD700; }
-            100% { box-shadow: 0 0 40px #FFD700, 0 0 70px rgba(255,215,0,0.7); }
+
+        @keyframes brilloCasilla {
+            0% { box-shadow: 0 0 10px #FFD700; }
+            100% { box-shadow: 0 0 30px #FFD700, 0 0 50px rgba(255,215,0,0.5); }
         }
 
         .resultado-numero {
-            font-size: 2em;
+            font-size: 1.5em;
             color: #FFD700;
-            text-shadow: 0 0 20px #FFD700;
+            text-shadow: 0 0 15px #FFD700;
             font-weight: bold;
-            animation: aparecer 0.5s ease-out;
             display: none;
-        }
-
-        @keyframes aparecer {
-            from { transform: scale(0) rotate(-180deg); opacity: 0; }
-            to { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
         @keyframes vibracion {
@@ -414,56 +533,116 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            border: 4px solid #FFD700;
+            background: rgba(0,0,0,0.95);
+            border: 3px solid #FFD700;
             border-radius: 20px;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
             z-index: 100;
             display: none;
             animation: aparecer 0.5s ease-out;
         }
 
-        .mensaje-victoria h2 {
-            color: #FFD700;
-            font-size: 2em;
-            margin-bottom: 15px;
+        @keyframes aparecer {
+            from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
-        .mensaje-victoria p {
-            color: white;
-            font-size: 1.2em;
-            margin-bottom: 20px;
+        .mensaje-victoria h2 {
+            color: #FFD700;
+            font-size: 1.8em;
+            margin-bottom: 10px;
         }
 
         .btn-reiniciar {
-            padding: 12px 30px;
+            padding: 10px 25px;
             background: #FFD700;
             color: #000;
             border: none;
-            border-radius: 25px;
-            font-size: 1.1em;
+            border-radius: 20px;
+            font-size: 1em;
             font-weight: bold;
             cursor: pointer;
+            margin: 5px;
+        }
+
+        .turno-indicador {
+            text-align: center;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 0.9em;
+            padding: 5px;
         }
     </style>
 </head>
 <body>
 
-    <div class="particulas" id="particulas"></div>
-
-    <!-- TABLERO DE JUEGO -->
-    <div id="tablero-container">
-        <div class="info-jugador">
-            <div class="fichas-contador">
-                <span class="fichas-icono">🪙</span>
-                <span>Fichas:</span>
-                <span class="fichas-numero" id="fichas-disponibles">6</span>
-            </div>
-            <div class="estado-juego" id="estado-juego">🎮 Jugando</div>
+    <!-- ============ PORTADA ============ -->
+    <div id="portada" class="pantalla activa">
+        <div class="logo-container">
+            <div class="logo-dado">🎲</div>
+            <div class="titulo-juego">FACTOR 6</div>
+            <div class="subtitulo">Juego de Estrategia y Suerte</div>
         </div>
 
-        <div id="tablero">
+        <div class="selector-oponentes" id="selector-oponentes">
+            <h3>🤖 Número de Oponentes IA</h3>
+            <div class="oponentes-grid">
+                <button class="btn-oponente" onclick="seleccionarOponentes(1, this)">1 Oponente</button>
+                <button class="btn-oponente seleccionado" onclick="seleccionarOponentes(2, this)">2 Oponentes</button>
+                <button class="btn-oponente" onclick="seleccionarOponentes(3, this)">3 Oponentes</button>
+                <button class="btn-oponente" onclick="seleccionarOponentes(0, this)">Solitario</button>
+            </div>
+        </div>
+
+        <div class="menu-botones">
+            <button class="btn-menu btn-jugar" onclick="iniciarJuego()">🎰 JUGAR</button>
+            <button class="btn-menu btn-instrucciones" onclick="mostrarInstrucciones()">📖 INSTRUCCIONES</button>
+        </div>
+    </div>
+
+    <!-- ============ INSTRUCCIONES ============ -->
+    <div id="instrucciones" class="pantalla">
+        <div class="instrucciones-container">
+            <h2>📖 REGLAS DEL JUEGO</h2>
+            
+            <div class="regla">
+                <h3>🎯 Objetivo</h3>
+                <p>Sé el primero en quedarte sin fichas. Coloca estratégicamente tus 6 fichas en el tablero.</p>
+            </div>
+
+            <div class="regla">
+                <h3>🔄 Números 1 al 5</h3>
+                <p><strong>Casilla Vacía:</strong> Colocas 1 ficha (la pierdes)<br>
+                <strong>Casilla Ocupada:</strong> Recoges la ficha (ganas 1)</p>
+            </div>
+
+            <div class="regla">
+                <h3>💎 Número 6 (Pozo)</h3>
+                <p>La ficha va al pozo y se pierde permanentemente. ¡No se puede recuperar!</p>
+            </div>
+
+            <div class="regla">
+                <h3>🤖 Modo Multijugador</h3>
+                <p>Compite contra 1-3 oponentes IA. Cada jugador tiene su turno. ¡Observa las fichas de tus rivales!</p>
+            </div>
+
+            <div class="regla">
+                <h3>🏆 Victoria</h3>
+                <p>El primer jugador en quedarse con 0 fichas gana la partida.</p>
+            </div>
+        </div>
+        <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
+    </div>
+
+    <!-- ============ JUEGO ============ -->
+    <div id="juego" class="pantalla">
+        <!-- Panel de jugadores -->
+        <div class="panel-jugadores" id="panel-jugadores"></div>
+
+        <!-- Tablero -->
+        <div id="tablero-container">
+            <div class="turno-indicador" id="turno-indicador">🎮 Tu turno</div>
             <div class="fila-superior">
                 <div class="cuadrado c1" id="casilla-1">
                     <span class="numero">1</span>
@@ -487,148 +666,179 @@
                 </div>
             </div>
             <div id="c6-container">
-                <div id="c6" class="iluminado">
-                    <span class="numero">6 - POZO</span>
+                <div id="c6">
+                    <span>6 - POZO</span>
                     <span class="contador-pozo" id="contador-pozo">0</span>
                 </div>
             </div>
         </div>
+
+        <!-- Máquina -->
+        <div class="slot-machine">
+            <div class="slot-ventana">
+                <div class="marcador-central"></div>
+                <div class="rodillo-unico" id="rodillo">
+                    <div class="numeros-rodillo" id="numeros"></div>
+                </div>
+            </div>
+            <div class="resultado-numero" id="resultado"></div>
+            <button class="btn-lanzar" id="boton">🎰 GIRAR 🎰</button>
+        </div>
     </div>
 
-    <!-- MÁQUINA DE JACKPOT -->
-    <div class="slot-machine">
-        <div class="luces-laterales luces-izquierda">
-            <div class="luz"></div><div class="luz"></div><div class="luz"></div>
-        </div>
-        
-        <div class="slot-ventana">
-            <div class="marcador-central"></div>
-            <div class="flechas-indicadoras">
-                <div class="flecha-indicadora flecha-izquierda"></div>
-                <div class="flecha-indicadora flecha-derecha"></div>
-            </div>
-            <div class="rodillo-unico" id="rodillo">
-                <div class="numeros-rodillo" id="numeros"></div>
-            </div>
-        </div>
-        
-        <div class="luces-laterales luces-derecha">
-            <div class="luz"></div><div class="luz"></div><div class="luz"></div>
-        </div>
-        
-        <div class="resultado-numero" id="resultado"></div>
-        
-        <button class="btn-lanzar" id="boton">🎰 GIRAR 🎰</button>
-    </div>
-
-    <!-- MENSAJE DE VICTORIA -->
+    <!-- Mensaje de victoria -->
     <div class="mensaje-victoria" id="mensaje-victoria">
-        <h2>🎉 ¡VICTORIA! 🎉</h2>
-        <p>¡Has colocado todas tus fichas!</p>
-        <button class="btn-reiniciar" onclick="reiniciarJuego()">🔄 Jugar de nuevo</button>
+        <h2 id="mensaje-titulo">🎉 ¡VICTORIA! 🎉</h2>
+        <p id="mensaje-texto">¡Has ganado la partida!</p>
+        <button class="btn-reiniciar" onclick="reiniciarPartida()">🔄 Jugar de nuevo</button>
+        <button class="btn-reiniciar" onclick="mostrarPortada()" style="background: rgba(255,255,255,0.2); color: white;">🏠 Menú</button>
     </div>
 
     <script>
-        // ========================================
-        // INICIALIZACIÓN DE TELEGRAM WEB APP
-        // ========================================
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
         // ========================================
-        // LÓGICA DEL JUEGO "FACTOR 6"
+        // ESTADO DEL JUEGO
         // ========================================
-        
-        // Estado del juego
-        let estadoCasillas = {
-            1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
-        };
-        let fichasMano = 6;
-        let juegoTerminado = false;
+        let numOponentes = 2;
+        let jugadores = [];
+        let turnoActual = 0;
+        let juegoActivo = false;
+        let intervaloActual = null;
 
-        // Elementos del DOM
-        const fichasDisponiblesEl = document.getElementById('fichas-disponibles');
-        const estadoJuegoEl = document.getElementById('estado-juego');
-        const contadorPozoEl = document.getElementById('contador-pozo');
-        const mensajeVictoria = document.getElementById('mensaje-victoria');
-        const resultadoEl = document.getElementById('resultado');
+        // Configuración de jugadores
+        const emojis = ['😎', '🤖', '👾', '🦾'];
+        const nombres = ['Tú', 'Bot-1', 'Bot-2', 'Bot-3'];
 
-        // Inicializar UI
-        function actualizarUI() {
-            // Actualizar contador de fichas
-            fichasDisponiblesEl.textContent = fichasMano;
+        function seleccionarOponentes(num, btn) {
+            numOponentes = num;
+            document.querySelectorAll('.btn-oponente').forEach(b => b.classList.remove('seleccionado'));
+            btn.classList.add('seleccionado');
+        }
+
+        function inicializarJugadores() {
+            jugadores = [];
+            for (let i = 0; i <= numOponentes; i++) {
+                jugadores.push({
+                    id: i,
+                    nombre: nombres[i],
+                    emoji: emojis[i],
+                    fichas: 6,
+                    esIA: i > 0,
+                    casillas: {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}
+                });
+            }
+        }
+
+        function crearPanelJugadores() {
+            const panel = document.getElementById('panel-jugadores');
+            panel.innerHTML = '';
+            
+            jugadores.forEach((jugador, index) => {
+                const card = document.createElement('div');
+                card.className = `jugador-card ${jugador.esIA ? 'ia' : ''}`;
+                card.id = `jugador-${index}`;
+                card.innerHTML = `
+                    <div class="jugador-emoji">${jugador.emoji}</div>
+                    <div class="jugador-nombre">${jugador.nombre}</div>
+                    <div class="jugador-fichas">🪙 ${jugador.fichas}</div>
+                `;
+                panel.appendChild(card);
+            });
+            
+            actualizarPanelJugadores();
+        }
+
+        function actualizarPanelJugadores() {
+            jugadores.forEach((jugador, index) => {
+                const card = document.getElementById(`jugador-${index}`);
+                if (card) {
+                    card.querySelector('.jugador-fichas').textContent = `🪙 ${jugador.fichas}`;
+                    
+                    // Marcar jugador activo
+                    card.classList.remove('activo');
+                    if (index === turnoActual && juegoActivo) {
+                        card.classList.add('activo');
+                    }
+                }
+            });
+        }
+
+        function actualizarTablero() {
+            const jugadorActual = jugadores[turnoActual];
             
             // Actualizar casillas 1-5
             for (let i = 1; i <= 5; i++) {
                 const casilla = document.getElementById(`casilla-${i}`);
-                if (estadoCasillas[i] === 1) {
+                if (jugadorActual.casillas[i] === 1) {
                     casilla.classList.add('ocupado');
                 } else {
                     casilla.classList.remove('ocupado');
                 }
             }
             
-            // Actualizar casilla 6 (pozo)
-            if (estadoCasillas[6] > 0) {
-                contadorPozoEl.textContent = estadoCasillas[6];
-                contadorPozoEl.classList.add('visible');
+            // Actualizar pozo
+            const contadorPozo = document.getElementById('contador-pozo');
+            if (jugadorActual.casillas[6] > 0) {
+                contadorPozo.textContent = jugadorActual.casillas[6];
+                contadorPozo.classList.add('visible');
             } else {
-                contadorPozoEl.classList.remove('visible');
+                contadorPozo.classList.remove('visible');
             }
             
-            // Verificar condición de victoria
-            if (fichasMano === 0 && !juegoTerminado) {
-                juegoTerminado = true;
-                estadoJuegoEl.textContent = '🏆 ¡Victoria!';
-                setTimeout(() => {
-                    mensajeVictoria.style.display = 'block';
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                }, 1000);
+            // Actualizar indicador de turno
+            const indicador = document.getElementById('turno-indicador');
+            if (jugadorActual.esIA) {
+                indicador.textContent = `🤖 Turno de ${jugadorActual.nombre}`;
+            } else {
+                indicador.textContent = '🎮 Tu turno';
             }
         }
 
         function colocarFicha(numero) {
-            if (juegoTerminado) return;
+            if (!juegoActivo) return;
+            
+            const jugadorActual = jugadores[turnoActual];
             
             // Lógica para números 1-5
             if (numero >= 1 && numero <= 5) {
-                if (estadoCasillas[numero] === 0) {
-                    // Caso A: Casilla vacía - Colocar ficha
-                    estadoCasillas[numero] = 1;
-                    fichasMano--;
-                    console.log(`✅ Ficha colocada en casilla ${numero}`);
+                if (jugadorActual.casillas[numero] === 0) {
+                    jugadorActual.casillas[numero] = 1;
+                    jugadorActual.fichas--;
                 } else {
-                    // Caso B: Casilla ocupada - Recoger ficha
-                    estadoCasillas[numero] = 0;
-                    fichasMano++;
-                    console.log(`🔄 Ficha recogida de casilla ${numero}`);
+                    jugadorActual.casillas[numero] = 0;
+                    jugadorActual.fichas++;
                 }
             }
             
-            // Lógica para número 6 (pozo)
+            // Lógica para número 6
             if (numero === 6) {
-                estadoCasillas[6]++;
-                fichasMano--;
-                console.log(`💎 Ficha enviada al pozo. Total en pozo: ${estadoCasillas[6]}`);
+                jugadorActual.casillas[6]++;
+                jugadorActual.fichas--;
             }
             
-            // Actualizar la UI
-            actualizarUI();
-            
-            // Iluminar el número que salió
+            // Iluminar casilla
             iluminarCasilla(numero);
+            
+            // Actualizar UI
+            actualizarPanelJugadores();
+            actualizarTablero();
+            
+            // Verificar victoria
+            if (jugadorActual.fichas === 0) {
+                terminarJuego(turnoActual);
+                return;
+            }
+            
+            // Siguiente turno
+            siguienteTurno();
         }
 
         function iluminarCasilla(numero) {
-            // Quitar iluminación anterior
-            document.querySelectorAll('.cuadrado, #c6').forEach(el => {
-                el.classList.remove('iluminado');
-            });
+            document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
             
-            // Iluminar la casilla correspondiente
             if (numero === 6) {
                 document.getElementById('c6').classList.add('iluminado');
             } else {
@@ -636,48 +846,67 @@
             }
         }
 
-        function reiniciarJuego() {
-            estadoCasillas = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
-            fichasMano = 6;
-            juegoTerminado = false;
+        function siguienteTurno() {
+            turnoActual = (turnoActual + 1) % jugadores.length;
+            actualizarPanelJugadores();
+            actualizarTablero();
             
-            actualizarUI();
-            mensajeVictoria.style.display = 'none';
-            estadoJuegoEl.textContent = '🎮 Jugando';
-            resultadoEl.style.display = 'none';
+            // Si es turno de la IA, ejecutar después de un delay
+            if (jugadores[turnoActual].esIA) {
+                document.getElementById('boton').disabled = true;
+                setTimeout(() => turnoIA(), 1500);
+            } else {
+                document.getElementById('boton').disabled = false;
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            }
+        }
+
+        function turnoIA() {
+            if (!juegoActivo) return;
             
-            // Quitar iluminaciones
-            document.querySelectorAll('.cuadrado, #c6').forEach(el => {
-                el.classList.remove('iluminado');
+            // IA: estrategia simple - prefiere colocar en casillas vacías
+            const jugadorIA = jugadores[turnoActual];
+            const numero = Math.floor(Math.random() * 6) + 1;
+            
+            // Animar el rodillo
+            animarRodillo(numero, () => {
+                colocarFicha(numero);
             });
+        }
+
+        function terminarJuego(ganadorId) {
+            juegoActivo = false;
+            document.getElementById('boton').disabled = true;
+            
+            const ganador = jugadores[ganadorId];
+            const mensajeTitulo = document.getElementById('mensaje-titulo');
+            const mensajeTexto = document.getElementById('mensaje-texto');
+            
+            if (ganador.esIA) {
+                mensajeTitulo.textContent = '😢 ¡DERROTA!';
+                mensajeTexto.textContent = `${ganador.emoji} ${ganador.nombre} ha ganado la partida.`;
+            } else {
+                mensajeTitulo.textContent = '🎉 ¡VICTORIA! 🎉';
+                mensajeTexto.textContent = '¡Has ganado la partida!';
+            }
+            
+            document.getElementById('mensaje-victoria').style.display = 'block';
             
             if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+                tg.HapticFeedback.notificationOccurred('success');
             }
         }
 
-        // ========================================
-        // ANIMACIÓN DE LA MÁQUINA
-        // ========================================
-        
-        let intervaloActual = null;
-        let resultadoFinal = 0;
-
-        function crearParticulas() {
-            const container = document.getElementById('particulas');
-            for (let i = 0; i < 25; i++) {
-                const particula = document.createElement('div');
-                particula.className = 'particula';
-                particula.style.left = Math.random() * 100 + '%';
-                particula.style.width = Math.random() * 5 + 2 + 'px';
-                particula.style.height = particula.style.width;
-                particula.style.animationDuration = Math.random() * 6 + 4 + 's';
-                particula.style.animationDelay = Math.random() * 6 + 's';
-                container.appendChild(particula);
-            }
+        function reiniciarPartida() {
+            document.getElementById('mensaje-victoria').style.display = 'none';
+            iniciarJuego();
         }
-        crearParticulas();
 
+        // ========================================
+        // ANIMACIÓN DEL RODILLO
+        // ========================================
         function inicializarRodillo() {
             const rodillo = document.getElementById('numeros');
             rodillo.innerHTML = '';
@@ -695,47 +924,21 @@
             });
             rodillo.style.transform = 'translateY(0px)';
         }
-        inicializarRodillo();
 
-        function tirarPalanca() {
-            const boton = document.getElementById('boton');
-            if (boton.disabled) return;
+        function animarRodillo(numeroFinal, callback) {
+            if (intervaloActual) clearInterval(intervaloActual);
+            inicializarRodillo();
             
-            if (juegoTerminado) {
-                tg.showAlert('¡El juego ha terminado! Presiona "Jugar de nuevo" para reiniciar.');
-                return;
-            }
-            
-            boton.disabled = true;
-            resultadoEl.style.display = 'none';
-            
-            // Quitar iluminaciones
-            document.querySelectorAll('.cuadrado, #c6').forEach(el => {
-                el.classList.remove('iluminado');
-            });
-            
-            // Generar número aleatorio
-            resultadoFinal = Math.floor(Math.random() * 6) + 1;
-            console.log('🎯 Resultado:', resultadoFinal);
-            
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            
+            const rodillo = document.getElementById('numeros');
             const slotMachine = document.querySelector('.slot-machine');
             slotMachine.classList.add('vibrando');
             
-            if (intervaloActual) clearInterval(intervaloActual);
-            inicializarRodillo();
-            const rodillo = document.getElementById('numeros');
-            
             let posicion = 0;
-            let velocidad = 40;
             let framesAvanzados = 0;
-            const totalFrames = 150;
+            const totalFrames = 100;
             
             intervaloActual = setInterval(() => {
-                const desplazamiento = posicion * 90;
+                const desplazamiento = posicion * 70;
                 rodillo.style.transform = `translateY(-${desplazamiento}px)`;
                 posicion++;
                 framesAvanzados++;
@@ -745,85 +948,90 @@
                     inicializarRodillo();
                 }
                 
-                if (framesAvanzados < 80) {
-                    velocidad = Math.max(25, velocidad - 0.5);
-                } else {
-                    velocidad += 3;
-                }
-                
                 if (framesAvanzados >= totalFrames) {
                     clearInterval(intervaloActual);
                     slotMachine.classList.remove('vibrando');
-                    setTimeout(() => posicionarNumeroGanador(resultadoFinal), 200);
+                    
+                    // Posicionar número final
+                    const desplazamientoFinal = (numeroFinal - 1) * 70;
+                    rodillo.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    rodillo.style.transform = `translateY(-${desplazamientoFinal}px)`;
+                    
+                    setTimeout(() => {
+                        if (callback) callback();
+                        setTimeout(() => {
+                            rodillo.style.transition = 'transform 0.1s linear';
+                        }, 500);
+                    }, 800);
                 }
-            }, velocidad);
+            }, 30);
         }
 
-        function posicionarNumeroGanador(numero) {
-            const rodillo = document.getElementById('numeros');
-            const desplazamiento = (numero - 1) * 90;
+        function tirarPalanca() {
+            const boton = document.getElementById('boton');
+            if (boton.disabled || !juegoActivo) return;
+            if (jugadores[turnoActual].esIA) return;
             
-            rodillo.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-            rodillo.style.transform = `translateY(-${desplazamiento}px)`;
+            boton.disabled = true;
             
-            setTimeout(() => {
-                // Aplicar lógica del juego
+            const numero = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('resultado').style.display = 'none';
+            
+            animarRodillo(numero, () => {
+                document.getElementById('resultado').textContent = `🎯 ${numero}`;
+                document.getElementById('resultado').style.display = 'block';
                 colocarFicha(numero);
-                
-                document.getElementById('boton').disabled = false;
-                
-                // Mostrar resultado
-                resultadoEl.textContent = `🎯 ${numero}`;
-                resultadoEl.style.display = 'block';
-                
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-                
-                setTimeout(() => {
-                    rodillo.style.transition = 'transform 0.1s linear';
-                }, 1000);
-                
-                crearEfectoCelebracion();
-            }, 900);
+            });
         }
 
-        function crearEfectoCelebracion() {
-            const container = document.getElementById('particulas');
-            const colores = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'];
+        // ========================================
+        // NAVEGACIÓN ENTRE PANTALLAS
+        // ========================================
+        function mostrarPantalla(id) {
+            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+            document.getElementById(id).classList.add('activa');
+        }
+
+        function mostrarPortada() {
+            document.getElementById('mensaje-victoria').style.display = 'none';
+            juegoActivo = false;
+            mostrarPantalla('portada');
+        }
+
+        function mostrarInstrucciones() {
+            mostrarPantalla('instrucciones');
+        }
+
+        function iniciarJuego() {
+            inicializarJugadores();
+            turnoActual = 0;
+            juegoActivo = true;
             
-            for (let i = 0; i < 30; i++) {
-                setTimeout(() => {
-                    const particula = document.createElement('div');
-                    particula.className = 'particula';
-                    particula.style.left = Math.random() * 100 + '%';
-                    particula.style.top = '50%';
-                    particula.style.width = Math.random() * 6 + 3 + 'px';
-                    particula.style.height = particula.style.width;
-                    particula.style.animationDuration = Math.random() * 2 + 1 + 's';
-                    particula.style.background = colores[Math.floor(Math.random() * colores.length)];
-                    container.appendChild(particula);
-                    setTimeout(() => particula.remove(), 2500);
-                }, i * 30);
+            inicializarRodillo();
+            crearPanelJugadores();
+            actualizarTablero();
+            
+            document.getElementById('resultado').style.display = 'none';
+            document.getElementById('mensaje-victoria').style.display = 'none';
+            document.getElementById('boton').disabled = false;
+            
+            mostrarPantalla('juego');
+            
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
             }
         }
 
-        // Eventos
+        // Event Listeners
         document.getElementById('boton').addEventListener('click', (e) => {
             e.preventDefault();
             tirarPalanca();
         });
 
-        document.querySelector('.slot-ventana').addEventListener('click', (e) => {
-            e.stopPropagation();
-            tirarPalanca();
-        });
-
-        // Inicializar UI
-        actualizarUI();
-        
-        console.log('✅ Juego Factor 6 inicializado');
-        console.log('📊 Estado inicial:', { fichasMano, estadoCasillas });
+        // Inicializar
+        inicializarJugadores();
+        crearPanelJugadores();
+        inicializarRodillo();
     </script>
 </body>
 </html>
