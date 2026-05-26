@@ -3,62 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Versión Ruleta</title>
+    <title>Factor 6 - Edición Tropical</title>
     <style>
-        body { margin: 0; background: #050515; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; overflow: hidden; }
+        body { 
+            margin: 0; 
+            background: linear-gradient(135deg, #FF7E5F, #8A2387, #243B55);
+            color: white; font-family: 'Arial Black', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between; 
+            height: 100vh; padding: 20px; box-sizing: border-box; overflow: hidden;
+        }
+
+        #tablero { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+        .fila-superior { display: flex; gap: 8px; }
+        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 10px; font-size: 1.2em; border: 3px solid rgba(255,255,255,0.3); transition: 0.3s; }
+        #c6 { width: 140px; height: 50px; background: #FFD700; clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); color: black; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+
+        /* Ruleta mejorada */
+        #ruleta { 
+            width: 240px; height: 240px; border-radius: 50%; border: 10px solid #fff; 
+            position: relative; display: flex; justify-content: center; align-items: center;
+            background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg);
+            transition: transform 4s cubic-bezier(0.1, 0, 0, 1);
+        }
+        .num-ruleta { position: absolute; transform-origin: 120px 120px; font-size: 1.5em; font-weight: bold; color: black; }
         
-        .header { display: flex; justify-content: space-between; width: 100%; padding: 0 10px; }
-        .bandera { width: 40px; height: 25px; background: linear-gradient(to bottom, #ffcc00 33%, #003399 33% 66%, #cf142b 66%); border-radius: 3px; }
-
-        #tablero { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
-        .fila-superior { display: flex; gap: 5px; }
-        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 6px; color: black; transition: 0.3s; border: 3px solid transparent; }
-        .c1 { background: #FF5733; } .c2 { background: #FFC300; } .c3 { background: #DAF7A6; } .c4 { background: #33FFBD; } .c5 { background: #3380FF; }
-        #c6 { width: 140px; height: 60px; background: #FFD700; clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); margin-top: 5px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.3em; }
-
-        /* Ruleta */
-        #ruleta { width: 220px; height: 220px; border-radius: 50%; border: 8px solid #333; position: relative; display: flex; justify-content: center; align-items: center; background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg); transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-        #ruleta::after { content: "STOP"; font-weight: bold; color: white; background: #000; padding: 10px; border-radius: 50%; border: 2px solid white; }
-
-        .btn { padding: 15px 40px; font-size: 1.5em; background: #FFD700; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.5); }
-        .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 15px white; }
+        .btn { 
+            padding: 15px 50px; font-size: 1.5em; background: #fff; color: #243B55; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .iluminado { border: 4px solid #fff !important; box-shadow: 0 0 20px #fff; transform: scale(1.1); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="bandera"></div>
-        <div class="bandera"></div>
-    </div>
-
     <div id="tablero">
         <div class="fila-superior">
-            <div class="cuadrado c1">1</div>
-            <div class="cuadrado c2">2</div>
-            <div class="cuadrado c3">3</div>
-            <div class="cuadrado c4">4</div>
-            <div class="cuadrado c5">5</div>
+            <div class="cuadrado c1">1</div><div class="cuadrado c2">2</div><div class="cuadrado c3">3</div><div class="cuadrado c4">4</div><div class="cuadrado c5">5</div>
         </div>
         <div id="c6">6</div>
     </div>
 
-    <div id="ruleta"></div>
+    <div id="ruleta">
+        <div class="num-ruleta" style="transform: rotate(30deg) translate(0, -90px);">1</div>
+        <div class="num-ruleta" style="transform: rotate(90deg) translate(0, -90px);">2</div>
+        <div class="num-ruleta" style="transform: rotate(150deg) translate(0, -90px);">3</div>
+        <div class="num-ruleta" style="transform: rotate(210deg) translate(0, -90px);">4</div>
+        <div class="num-ruleta" style="transform: rotate(270deg) translate(0, -90px);">5</div>
+        <div class="num-ruleta" style="transform: rotate(330deg) translate(0, -90px);">6</div>
+    </div>
 
-    <button class="btn" id="btn" onclick="girar()">LANZAR</button>
+    <button class="btn" id="btn" onclick="girar()">¡GIRAR!</button>
 
     <script>
+        let gradosActuales = 0;
         function girar() {
             const btn = document.getElementById('btn');
             const ruleta = document.getElementById('ruleta');
             btn.disabled = true;
             
-            const gradosExtra = Math.floor(Math.random() * 360) + 1440; // Mínimo 4 vueltas
-            ruleta.style.transform = `rotate(${gradosExtra}deg)`;
+            // Calculamos grados para que caiga en un número exacto
+            const resultados = [330, 270, 210, 150, 90, 30]; // Ángulos para 6, 5, 4, 3, 2, 1
+            const res = Math.floor(Math.random() * 6);
+            gradosActuales += 1440 + resultados[res]; 
+            
+            ruleta.style.transform = `rotate(${gradosActuales}deg)`;
             
             setTimeout(() => {
-                const res = Math.floor(Math.random() * 6) + 1;
-                iluminar(res);
+                iluminar(res + 1);
                 btn.disabled = false;
-            }, 3000);
+            }, 4100);
         }
 
         function iluminar(n) {
