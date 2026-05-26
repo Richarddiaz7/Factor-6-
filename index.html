@@ -3,22 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Tablero de Madera</title>
+    <title>Factor 6 - Tablero Fijo</title>
     <style>
-        body { margin: 0; background: url('https://img.freepik.com/foto-gratis/fondo-textura-madera-marron-claro-veta-natural_1017-38686.jpg?w=1380&t=st=1698263548~exp=1698264148~hmac=50e41f6c770c1e84e5b77873b88b0a9f5c4014f35a909405b5832a58d1f2e105') center/cover no-repeat; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-around; height: 100vh; overflow: hidden; }
-        #tablero { display: flex; flex-direction: column; align-items: center; width: 340px; }
+        body { 
+            margin: 0; 
+            background: url('https://img.freepik.com/foto-gratis/fondo-textura-madera-marron-claro-veta-natural_1017-38686.jpg') center/cover no-repeat; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; font-family: sans-serif;
+        }
+
+        #tablero { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        .fila-superior { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        
-        .cuadrado { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.7); border: 2px solid #555; border-radius: 5px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.5em; transition: 0.3s; }
-        
-        .trapecio-wrapper { width: 100%; display: flex; justify-content: center; }
-        
-        .trapecio { width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-top: 100px solid rgba(255, 215, 0, 0.7); display: flex; justify-content: center; align-items: center; position: relative; color: black; font-weight: bold; font-size: 2em; }
-        
-        .trapecio span { position: absolute; top: -75px; left: -10px; z-index: 10; }
-        
-        #log { font-size: 1.2em; font-weight: bold; }
+        .fila-superior { display: flex; gap: 10px; }
+
+        .cuadrado { 
+            width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; 
+            font-weight: bold; border: 3px solid rgba(0,0,0,0.3); border-radius: 8px;
+        }
+
+        /* Colores de los cuadrados */
+        .c1 { background-color: #FF5733; }
+        .c2 { background-color: #FFC300; }
+        .c3 { background-color: #DAF7A6; }
+        .c4 { background-color: #33FFBD; }
+        .c5 { background-color: #3380FF; }
+
+        /* Trapecio invertido corregido */
+        .trapecio { 
+            width: 150px; height: 0; 
+            border-top: 80px solid #FFD700; 
+            border-left: 20px solid transparent; 
+            border-right: 20px solid transparent;
+            display: flex; justify-content: center; align-items: flex-start;
+            margin-top: 10px; position: relative;
+        }
+        .trapecio span { position: absolute; top: -70px; font-size: 1.5em; font-weight: bold; }
+
+        .iluminado { border: 4px solid white !important; transform: scale(1.1); box-shadow: 0 0 15px white; }
+        #log { margin-top: 30px; font-weight: bold; font-size: 1.2em; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -31,32 +53,13 @@
             <div class="cuadrado c4">4</div>
             <div class="cuadrado c5">5</div>
         </div>
-        <div class="trapecio-wrapper">
-            <div class="trapecio" id="c6">
-                <span>6</span>
-            </div>
-        </div>
+        <div class="trapecio" id="c6"><span>6</span></div>
     </div>
     <div id="log">Toca la pantalla y agita el móvil</div>
 
     <script>
         const log = document.getElementById('log');
         let ultimaAgitacion = 0;
-
-        // Función para solicitar permiso de sensor (Específico para iOS/Brave)
-        function solicitarPermiso() {
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission().then(response => {
-                    if (response === 'granted') {
-                        activarJuego();
-                        log.innerText = "¡Agita el móvil!";
-                    }
-                }).catch(console.error);
-            } else {
-                activarJuego(); // Android estándar
-                log.innerText = "¡Agita el móvil!";
-            }
-        }
 
         function activarJuego() {
             window.addEventListener('devicemotion', (event) => {
@@ -73,19 +76,24 @@
         }
 
         function iluminar(n) {
-            document.querySelectorAll('.cuadrado, .trapecio').forEach(el => el.style.border = "none");
-            const target = (n === 6) ? document.getElementById('c6') : document.querySelectorAll('.cuadrado')[n-1];
+            const elementos = document.querySelectorAll('.cuadrado, .trapecio');
+            elementos.forEach(el => el.classList.remove('iluminado'));
+            
             if (n === 6) {
-                target.style.borderTopColor = "#ffd700";
-                target.style.borderTopWidth = "105px";
-                target.style.borderTopStyle = "solid";
+                document.getElementById('c6').classList.add('iluminado');
             } else {
-                target.style.border = "5px solid #FF5733";
+                document.querySelectorAll('.cuadrado')[n-1].classList.add('iluminado');
             }
         }
 
-        // Tocar la pantalla para pedir permisos iniciales
-        document.body.addEventListener('click', solicitarPermiso, {once: true});
+        document.body.addEventListener('click', () => {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(res => { if(res === 'granted') activarJuego(); });
+            } else {
+                activarJuego();
+            }
+            log.innerText = "¡Agita fuerte!";
+        }, {once: true});
     </script>
 </body>
 </html>
