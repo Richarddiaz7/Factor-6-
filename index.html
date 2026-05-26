@@ -6,34 +6,29 @@
     <style>
         body { 
             margin: 0; 
-            /* Degradado de cielo (celeste) a azul marino */
             background: linear-gradient(to bottom, #87CEEB 0%, #000080 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: space-around; 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; 
             height: 100vh; font-family: sans-serif; color: white; overflow: hidden;
         }
 
-        #tablero { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        #tablero { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .fila-superior { display: flex; gap: 10px; }
         .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; color: black; transition: 0.3s; border: 4px solid transparent; }
-        
-        #c6 { 
-            width: 150px; height: 60px; background: #FFD700; 
-            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); 
-            display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; border: 4px solid transparent; 
-        }
+        #c6 { width: 150px; height: 60px; background: #FFD700; clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: black; transition: 0.3s; border: 4px solid transparent; }
 
         .c1 { background-color: #FF5733; } .c2 { background-color: #FFC300; } .c3 { background-color: #DAF7A6; } .c4 { background-color: #33FFBD; } .c5 { background-color: #3380FF; }
 
-        /* Ruleta */
+        /* Ruleta con Flecha */
+        #ruleta-container { position: relative; display: flex; justify-content: center; align-items: center; }
+        #flecha { position: absolute; top: -25px; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #FFD700; z-index: 10; }
+        
         #ruleta { 
-            width: 220px; height: 220px; border-radius: 50%; 
-            border: 10px solid white; position: relative;
+            width: 220px; height: 220px; border-radius: 50%; border: 10px solid white;
             background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg);
             transition: transform 4s cubic-bezier(0.1, 0, 0, 1);
-            display: flex; justify-content: center; align-items: center;
+            position: relative;
         }
-        .num { position: absolute; font-weight: bold; color: black; font-size: 1.5em; }
+        .num { position: absolute; width: 100%; text-align: center; top: 10px; font-weight: bold; color: black; font-size: 1.5em; }
 
         .btn-lanzar { padding: 15px 40px; font-size: 1.2em; background: #fff; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; color: #000080; }
         .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
@@ -48,13 +43,16 @@
         <div id="c6">6</div>
     </div>
 
-    <div id="ruleta">
-        <div class="num" style="transform: rotate(30deg) translate(0,-80px)">1</div>
-        <div class="num" style="transform: rotate(90deg) translate(0,-80px)">2</div>
-        <div class="num" style="transform: rotate(150deg) translate(0,-80px)">3</div>
-        <div class="num" style="transform: rotate(210deg) translate(0,-80px)">4</div>
-        <div class="num" style="transform: rotate(270deg) translate(0,-80px)">5</div>
-        <div class="num" style="transform: rotate(330deg) translate(0,-80px)">6</div>
+    <div id="ruleta-container">
+        <div id="flecha"></div>
+        <div id="ruleta">
+            <div class="num" style="transform: rotate(30deg)">1</div>
+            <div class="num" style="transform: rotate(90deg)">2</div>
+            <div class="num" style="transform: rotate(150deg)">3</div>
+            <div class="num" style="transform: rotate(210deg)">4</div>
+            <div class="num" style="transform: rotate(270deg)">5</div>
+            <div class="num" style="transform: rotate(330deg)">6</div>
+        </div>
     </div>
 
     <button class="btn-lanzar" id="boton" onclick="girarRuleta()">GIRAR</button>
@@ -66,11 +64,11 @@
             const boton = document.getElementById('boton');
             boton.disabled = true;
             
-            // Ángulos exactos para caer en cada número (1 al 6)
-            const angulos = [330, 270, 210, 150, 90, 30]; 
+            // Ángulos calculados para que el número quede bajo la flecha (ajustado a los 60 grados por sector)
+            const angulos = [0, -60, -120, -180, -240, -300]; 
             const res = Math.floor(Math.random() * 6);
             
-            grados += 1440 + angulos[res];
+            grados += 1440 + angulos[res]; 
             ruleta.style.transform = `rotate(${grados}deg)`;
             
             setTimeout(() => {
