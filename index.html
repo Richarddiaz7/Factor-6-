@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factor 6 - Ruleta Tropical</title>
+    <title>Factor 6 - Ruleta Arreglada</title>
     <style>
         body { 
             margin: 0; 
@@ -26,14 +26,16 @@
             background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg);
             transition: transform 4s cubic-bezier(0.1, 0, 0, 1);
             position: relative;
-            display: flex; justify-content: center; align-items: center;
         }
 
-        /* Números limpios */
-        .numero-ruleta { 
-            position: absolute; font-weight: 900; color: #000; font-size: 1.8em; 
-            transform-origin: 0 0; text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
+        /* Contenedor de número que se mantiene recto */
+        .segmento {
+            position: absolute; width: 50%; height: 50%;
+            transform-origin: 100% 100%;
+            display: flex; justify-content: flex-end; align-items: flex-start;
+            padding-top: 10px; padding-right: 15px;
         }
+        .numero-txt { font-weight: 900; color: #000; font-size: 1.8em; }
 
         .btn-lanzar { padding: 15px 40px; font-size: 1.2em; background: #fff; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; color: #000080; }
         .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 20px white; }
@@ -50,22 +52,20 @@
 
     <div id="ruleta-container">
         <div id="flecha"></div>
-        <div id="ruleta">
-            </div>
+        <div id="ruleta"></div>
     </div>
 
     <button class="btn-lanzar" id="boton" onclick="girarRuleta()">GIRAR</button>
 
     <script>
-        // Dibujar números en la ruleta de forma precisa
         const ruleta = document.getElementById('ruleta');
+        // Crear los 6 segmentos con sus números
         for(let i=1; i<=6; i++) {
-            let n = document.createElement('div');
-            n.className = 'numero-ruleta';
-            n.innerText = i;
-            // Rotamos cada número 60 grados por segmento y movemos hacia afuera
-            n.style.transform = `rotate(${(i-1)*60 + 30}deg) translate(0, -70px)`;
-            ruleta.appendChild(n);
+            let seg = document.createElement('div');
+            seg.className = 'segmento';
+            seg.style.transform = `rotate(${(i-1)*60}deg)`;
+            seg.innerHTML = `<div class="numero-txt">${i}</div>`;
+            ruleta.appendChild(seg);
         }
 
         let grados = 0;
@@ -73,9 +73,10 @@
             const boton = document.getElementById('boton');
             boton.disabled = true;
             
-            const res = Math.floor(Math.random() * 6); // 0 a 5
-            // Ajuste de ángulos para que el sector quede bajo la flecha
-            const angulos = [-30, -90, -150, -210, -270, -330]; 
+            const res = Math.floor(Math.random() * 6);
+            // Ajustamos el ángulo para que el número quede bajo la flecha
+            // El orden es 1,2,3,4,5,6 en sentido horario
+            const angulos = [0, -60, -120, -180, -240, -300]; 
             
             grados += 1440 + angulos[res]; 
             ruleta.style.transform = `rotate(${grados}deg)`;
