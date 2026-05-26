@@ -3,70 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factor 6 - Versión 2.0</title>
+    <title>Factor 6 - Tablero de Madera</title>
     <style>
-        body { margin: 0; background: #050510; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #tablero { position: relative; width: 340px; height: 340px; }
+        body { margin: 0; background: url('https://img.freepik.com/foto-gratis/fondo-textura-madera-marron-claro-veta-natural_1017-38686.jpg?w=1380&t=st=1698263548~exp=1698264148~hmac=50e41f6c770c1e84e5b77873b88b0a9f5c4014f35a909405b5832a58d1f2e105') center/cover no-repeat; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-around; height: 100vh; overflow: hidden; }
+        #tablero { display: flex; flex-direction: column; align-items: center; width: 340px; }
         
-        .numero-6 { position: absolute; top: 120px; left: 120px; width: 100px; height: 100px; background: #FFD700; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 2em; box-shadow: 0 0 20px #FFD700; z-index: 2;}
-
-        /* Colores específicos */
-        .c1 { background: #FF5733; top: 0px; left: 140px; }
-        .c2 { background: #FFC300; top: 60px; left: 260px; }
-        .c3 { background: #DAF7A6; top: 200px; left: 260px; }
-        .c4 { background: #33FFBD; top: 260px; left: 140px; }
-        .c5 { background: #3380FF; top: 200px; left: 20px; }
-
-        .casilla { position: absolute; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; transition: 0.3s; }
-        #log { position: fixed; bottom: 50px; font-size: 1.5em; text-align: center; }
+        .fila-superior { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        
+        .cuadrado { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.7); border: 2px solid #555; border-radius: 5px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.5em; transition: 0.3s; }
+        
+        .trapecio-wrapper { width: 100%; display: flex; justify-content: center; }
+        
+        .trapecio { width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-top: 100px solid rgba(255, 215, 0, 0.7); display: flex; justify-content: center; align-items: center; position: relative; color: black; font-weight: bold; font-size: 2em; }
+        
+        .trapecio span { position: absolute; top: -75px; left: -10px; z-index: 10; }
+        
+        #log { font-size: 1.2em; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="tablero">
-        <div class="numero-6" id="c6">6</div>
-        <div class="casilla c1">1</div>
-        <div class="casilla c2">2</div>
-        <div class="casilla c3">3</div>
-        <div class="casilla c4">4</div>
-        <div class="casilla c5">5</div>
+        <div class="fila-superior">
+            <div class="cuadrado c1">1</div>
+            <div class="cuadrado c2">2</div>
+            <div class="cuadrado c3">3</div>
+            <div class="cuadrado c4">4</div>
+            <div class="cuadrado c5">5</div>
+        </div>
+        <div class="trapecio-wrapper">
+            <div class="trapecio" id="c6">
+                <span>6</span>
+            </div>
+        </div>
     </div>
-    <div id="log">Agita el móvil con fuerza</div>
+    <div id="log">Toca la pantalla y agita el móvil</div>
 
     <script>
         const log = document.getElementById('log');
-        
+        let ultimaAgitacion = 0;
+
         // Función para solicitar permiso de sensor (Específico para iOS/Brave)
         function solicitarPermiso() {
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission().then(response => {
                     if (response === 'granted') {
                         activarJuego();
+                        log.innerText = "¡Agita el móvil!";
                     }
-                });
+                }).catch(console.error);
             } else {
                 activarJuego(); // Android estándar
+                log.innerText = "¡Agita el móvil!";
             }
         }
 
         function activarJuego() {
-            let ultimaAgitacion = 0;
             window.addEventListener('devicemotion', (event) => {
                 const acc = event.accelerationIncludingGravity;
+                if (!acc) return;
                 const total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
                 if (total > 20 && Date.now() - ultimaAgitacion > 2000) {
                     ultimaAgitacion = Date.now();
                     const res = Math.floor(Math.random() * 6) + 1;
-                    log.innerText = "Salió el: " + res;
+                    log.innerText = "Resultado: " + res;
                     iluminar(res);
                 }
             });
         }
 
         function iluminar(n) {
-            document.querySelectorAll('.casilla, .numero-6').forEach(el => el.style.border = "none");
-            const target = (n === 6) ? document.getElementById('c6') : document.querySelectorAll('.casilla')[n-1];
-            target.style.border = "5px solid white";
+            document.querySelectorAll('.cuadrado, .trapecio').forEach(el => el.style.border = "none");
+            const target = (n === 6) ? document.getElementById('c6') : document.querySelectorAll('.cuadrado')[n-1];
+            if (n === 6) {
+                target.style.borderTopColor = "#ffd700";
+                target.style.borderTopWidth = "105px";
+                target.style.borderTopStyle = "solid";
+            } else {
+                target.style.border = "5px solid #FF5733";
+            }
         }
 
         // Tocar la pantalla para pedir permisos iniciales
