@@ -1,253 +1,71 @@
-         <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Factor 6 - Tropical Casino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factor 6 - Versión Ruleta</title>
     <style>
-        /* ============================================================
-           Factor 6 – Tropical Casino – Diseño Refinado
-           ============================================================ */
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body { 
-            margin: 0; 
-            /* Fondo Playero Animado (Gradiente que cambia suavemente) */
-            background: linear-gradient(135deg, #FF7E5F 0%, #FFC300 50%, #243B55 100%);
-            background-size: 300% 300%;
-            animation: gradientPlayero 12s ease infinite;
-
-            color: white; 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-between; 
-            height: 100vh; 
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Capa de efecto "neon" playero (opcional, para ambiente) */
-        body::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 60%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes gradientPlayero {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* --- Tablero --- */
-        #tablero { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 12px; 
-            margin-top: calc(10px + env(safe-area-inset-top)); 
-            width: 100%;
-            max-width: 320px;
-        }
-
-        .fila-superior { display: flex; gap: 10px; justify-content: center; }
+        body { margin: 0; background: #050515; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; overflow: hidden; }
         
-        .cuadrado { 
-            width: 50px; height: 50px; 
-            display: flex; justify-content: center; align-items: center; 
-            border-radius: 12px; 
-            font-size: 1.5rem; font-weight: 800; 
-            border: 3px solid rgba(255,255,255,0.25); 
-            background: rgba(255,255,255,0.08); 
-            transition: transform 0.3s, box-shadow 0.3s; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-        }
+        .header { display: flex; justify-content: space-between; width: 100%; padding: 0 10px; }
+        .bandera { width: 40px; height: 25px; background: linear-gradient(to bottom, #ffcc00 33%, #003399 33% 66%, #cf142b 66%); border-radius: 3px; }
 
-        #c6 { 
-            width: 150px; height: 55px; 
-            background: linear-gradient(145deg, #ffd700, #ffaa00);
-            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); 
-            color: #243B55; 
-            display: flex; justify-content: center; align-items: center; 
-            font-size: 1.8rem; font-weight: bold; 
-            margin-top: 8px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-            position: relative;
-        }
+        #tablero { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
+        .fila-superior { display: flex; gap: 5px; }
+        .cuadrado { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 6px; color: black; transition: 0.3s; border: 3px solid transparent; }
+        .c1 { background: #FF5733; } .c2 { background: #FFC300; } .c3 { background: #DAF7A6; } .c4 { background: #33FFBD; } .c5 { background: #3380FF; }
+        #c6 { width: 140px; height: 60px; background: #FFD700; clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); margin-top: 5px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.3em; }
 
-        #c6 .multiplier {
-            position: absolute;
-            top: -10px; right: -12px;
-            background: #FF3860; color: white;
-            font-size: 0.7rem; padding: 2px 6px; border-radius: 10px;
-            pointer-events: none;
-        }
+        /* Ruleta */
+        #ruleta { width: 220px; height: 220px; border-radius: 50%; border: 8px solid #333; position: relative; display: flex; justify-content: center; align-items: center; background: conic-gradient(#FF5733 0deg 60deg, #FFC300 60deg 120deg, #DAF7A6 120deg 180deg, #33FFBD 180deg 240deg, #3380FF 240deg 300deg, #FFD700 300deg 360deg); transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
+        #ruleta::after { content: "STOP"; font-weight: bold; color: white; background: #000; padding: 10px; border-radius: 50%; border: 2px solid white; }
 
-        /* --- Ruleta Arreglada --- */
-        #ruleta-wrapper {
-            width: 250px; height: 250px;
-            position: relative;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        #ruleta { 
-            width: 100%; height: 100%; 
-            border-radius: 50%; 
-            border: 8px solid rgba(255,255,255,0.9); /* Borde blanco sutil */
-            background: conic-gradient(
-                #FF5733 0deg 60deg, 
-                #FFC300 60deg 120deg, 
-                #DAF7A6 120deg 180deg, 
-                #33FFBD 180deg 240deg, 
-                #3380FF 240deg 300deg, 
-                #FFD700 300deg 360deg
-            );
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4), inset 0 0 15px rgba(0,0,0,0.2);
-            transition: transform 4s cubic-bezier(0.15, 0.8, 0.2, 1);
-            position: relative;
-        }
-
-        /* Puntero centrado */
-        #ruleta-puntero {
-            position: absolute;
-            top: -12px; left: 50%;
-            transform: translateX(-50%);
-            width: 0; height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 25px solid white;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4));
-            z-index: 5;
-        }
-
-        /* Números centrado (NUEVO RADIO Y AJUSTE) */
-        .num-ruleta { 
-            position: absolute; 
-            left: 50%; top: 50%;
-            /* Radio más ajustado y font-size más pequeño para que no se salgan */
-            transform-origin: 0 0; 
-            font-size: 1.3rem; font-weight: 800; 
-            color: rgba(0,0,0,0.8); 
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-            pointer-events: none;
-        }
-
-        /* --- Botón --- */
-        .btn { 
-            padding: 16px 60px; font-size: 1.4rem; 
-            background: #fff; color: #243B55; 
-            border: none; border-radius: 35px; 
-            cursor: pointer; font-weight: bold; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
-            margin-bottom: calc(20px + env(safe-area-inset-bottom));
-            animation: pulse 2.2s infinite;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-        }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
-        
-        /* Efectos de Iluminación Casino Tropical */
-        .iluminado { 
-            border: 4px solid #fff !important; 
-            box-shadow: 0 0 25px #fff, 0 0 10px #00FF88; /* Añade destello verde neon */
-            transform: scale(1.1); 
-        }
-
+        .btn { padding: 15px 40px; font-size: 1.5em; background: #FFD700; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.5); }
+        .iluminado { border-color: white !important; transform: scale(1.1); box-shadow: 0 0 15px white; }
     </style>
 </head>
 <body>
-    
+    <div class="header">
+        <div class="bandera"></div>
+        <div class="bandera"></div>
+    </div>
+
     <div id="tablero">
         <div class="fila-superior">
-            <div class="cuadrado c1">1</div><div class="cuadrado c2">2</div><div class="cuadrado c3">3</div><div class="cuadrado c4">4</div><div class="cuadrado c5">5</div>
+            <div class="cuadrado c1">1</div>
+            <div class="cuadrado c2">2</div>
+            <div class="cuadrado c3">3</div>
+            <div class="cuadrado c4">4</div>
+            <div class="cuadrado c5">5</div>
         </div>
-        <div id="c6">
-            <span class="multiplier">x6</span>
-            6
-        </div>
+        <div id="c6">6</div>
     </div>
 
-    <div id="ruleta-wrapper">
-        <div id="ruleta-puntero"></div>
-        <div id="ruleta">
-            </div>
-    </div>
+    <div id="ruleta"></div>
 
-    <button class="btn" id="btn" onclick="girar()">¡GIRAR!</button>
+    <button class="btn" id="btn" onclick="girar()">LANZAR</button>
 
     <script>
-        // 1. Generar números de ruleta en el centro perfecto
-        (function renderWheelNumbers() {
-            const ruleta = document.getElementById('ruleta');
-            const radius = 37; // Ajustado para que el número quede a una buena distancia del borde
-            for (let i = 1; i <= 6; i++) {
-                // Ángulo base para el número (i) + desfase para centrarlo en su segmento
-                const angle = (i - 1) * 60 + 30; 
-                const num = document.createElement('div');
-                num.className = 'num-ruleta';
-                num.textContent = i;
-                
-                // Usamos Translate + Rotate para posicionar cada número
-                num.style.transform = `rotate(${angle}deg) translate(0, -${radius}%)`;
-                
-                ruleta.appendChild(num);
-            }
-        })();
-
-        let gradosActuales = 0;
         function girar() {
             const btn = document.getElementById('btn');
             const ruleta = document.getElementById('ruleta');
-            
-            // Sonido de clic sutil (si tienes el archivo)
-            // try { new Audio('data:audio/wav;base64,UklGRmYBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVEBAAAAAAAAAA...').play(); } catch(e){}
-
             btn.disabled = true;
-            btn.style.opacity = '0.7';
-
-            // 1. Ocultamos iluminaciones previas
-            document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
-
-            // 2. Calculamos resultado (0=6, 1=5, ..., 5=1)
-            // *Misma lógica de ángulos que antes, pero con números dinámicos.*
-            const resIndex = Math.floor(Math.random() * 6);
-            const numeroGanador = [6, 5, 4, 3, 2, 1][resIndex]; // Obtenemos el número real
-            const anguloFreno = [330, 270, 210, 150, 90, 30][resIndex]; 
             
-            // 3. Girar (mínimo 4 vueltas = 1440 grados + el freno)
-            gradosActuales += 1440 + anguloFreno; 
-            ruleta.style.transform = `rotate(${gradosActuales}deg)`;
+            const gradosExtra = Math.floor(Math.random() * 360) + 1440; // Mínimo 4 vueltas
+            ruleta.style.transform = `rotate(${gradosExtra}deg)`;
             
-            // 4. Esperar a que la ruleta frene (4s de animación)
             setTimeout(() => {
-                iluminar(numeroGanador);
+                const res = Math.floor(Math.random() * 6) + 1;
+                iluminar(res);
                 btn.disabled = false;
-                btn.style.opacity = '1';
-                
-                // Efecto de impacto sutil
-                // if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-            }, 4100);
+            }, 3000);
         }
 
         function iluminar(n) {
             document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
-            
-            if (n === 6) {
-                document.getElementById('c6').classList.add('iluminado');
-            } else {
-                // Buscamos el cuadrado correspondiente por su clase 'cX'
-                const cell = document.querySelector(`.c${n}`);
-                if (cell) cell.classList.add('iluminado');
-            }
+            if (n === 6) document.getElementById('c6').classList.add('iluminado');
+            else document.querySelectorAll('.cuadrado')[n-1].classList.add('iluminado');
         }
-    </style>
+    </script>
 </body>
 </html>
