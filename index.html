@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Factor 6 - Tablero Compartido</title>
+    <meta name="telegram-web-app" content="yes">
+    <title>Factor 6 - Online</title>
+    
+    <!-- Telegram Web Apps SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Firebase SDKs (compatibilidad) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -99,8 +108,6 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
         }
 
         .btn-jugar {
@@ -117,53 +124,8 @@
             backdrop-filter: blur(10px);
         }
 
-        .btn-oponentes {
-            background: linear-gradient(180deg, #9C27B0, #6A1B9A);
-            color: white;
-            border: 2px solid #BA68C8;
-            box-shadow: 0 5px 20px rgba(156,39,176,0.5);
-        }
-
         .btn-menu:active {
             transform: scale(0.95);
-        }
-
-        .selector-oponentes {
-            background: rgba(0,0,0,0.5);
-            border-radius: 15px;
-            padding: 15px;
-            border: 2px solid rgba(255,215,0,0.3);
-            width: 80%;
-            max-width: 300px;
-            text-align: center;
-        }
-
-        .selector-oponentes h3 {
-            color: #FFD700;
-            margin-bottom: 10px;
-        }
-
-        .oponentes-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .btn-oponente {
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-
-        .btn-oponente.seleccionado {
-            background: rgba(255,215,0,0.3);
-            border-color: #FFD700;
-            box-shadow: 0 0 15px rgba(255,215,0,0.3);
         }
 
         #instrucciones {
@@ -348,22 +310,6 @@
             box-shadow: 0 3px 8px rgba(0,0,0,0.5);
             display: none;
             animation: colocarFicha 0.3s ease-out;
-            position: relative;
-        }
-
-        .cuadrado .ficha .dueño-emoji {
-            position: absolute;
-            font-size: 10px;
-            bottom: -8px;
-            right: -8px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
         }
 
         @keyframes colocarFicha {
@@ -598,21 +544,11 @@
         <div class="logo-container">
             <div class="logo-dado">🎲</div>
             <div class="titulo-juego">FACTOR 6</div>
-            <div class="subtitulo">Tablero Compartido</div>
-        </div>
-
-        <div class="selector-oponentes" id="selector-oponentes">
-            <h3>🤖 Número de Oponentes IA</h3>
-            <div class="oponentes-grid">
-                <button class="btn-oponente" onclick="seleccionarOponentes(1, this)">1 Oponente</button>
-                <button class="btn-oponente seleccionado" onclick="seleccionarOponentes(2, this)">2 Oponentes</button>
-                <button class="btn-oponente" onclick="seleccionarOponentes(3, this)">3 Oponentes</button>
-                <button class="btn-oponente" onclick="seleccionarOponentes(0, this)">Solitario</button>
-            </div>
+            <div class="subtitulo">Juego de Estrategia y Suerte</div>
         </div>
 
         <div class="menu-botones">
-            <button class="btn-menu btn-jugar" onclick="iniciarJuego()">🎰 JUGAR</button>
+            <button class="btn-menu btn-jugar" onclick="iniciarJuegoOnline()">🎰 JUGAR</button>
             <button class="btn-menu btn-instrucciones" onclick="mostrarInstrucciones()">📖 INSTRUCCIONES</button>
         </div>
     </div>
@@ -624,23 +560,18 @@
             
             <div class="regla">
                 <h3>🎯 Objetivo</h3>
-                <p>Sé el primero en quedarte sin fichas. El tablero es <strong>compartido</strong>: las fichas que colocas pueden ser recogidas por cualquier jugador.</p>
+                <p>Sé el primero en quedarte sin fichas. El tablero es <strong>compartido</strong>.</p>
             </div>
 
             <div class="regla">
                 <h3>🔄 Números 1 al 5</h3>
-                <p><strong>Casilla Vacía:</strong> Colocas 1 ficha tuya y sigues tirando.<br>
-                <strong>Casilla Ocupada:</strong> Recoges la ficha (aunque sea de otro) y pierdes el turno.</p>
+                <p><strong>Casilla Vacía:</strong> Colocas ficha y sigues tirando.<br>
+                <strong>Casilla Ocupada:</strong> Recoges ficha y pierdes turno.</p>
             </div>
 
             <div class="regla">
-                <h3>💎 Número 6 (Pozo Común)</h3>
-                <p>Tu ficha va al pozo (pérdida permanente). No pierdes el turno.</p>
-            </div>
-
-            <div class="regla">
-                <h3>🏁 Inicio</h3>
-                <p>Se tira el dado una vez por jugador. Empieza quien saca el número más alto. En caso de empate, los empatados repiten.</p>
+                <h3>💎 Número 6 (Pozo)</h3>
+                <p>La ficha va al pozo. <strong>No pierdes el turno</strong>.</p>
             </div>
         </div>
         <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
@@ -697,409 +628,17 @@
 
     <!-- Mensaje de victoria -->
     <div class="mensaje-victoria" id="mensaje-victoria">
-        <h2 id="mensaje-titulo">🎉 ¡VICTORIA! 🎉</h2>
+        <h2 id="mensaje-titulo">🎉 ¡VICTORIA!</h2>
         <p id="mensaje-texto">¡Has ganado la partida!</p>
         <button class="btn-reiniciar" onclick="reiniciarPartida()">🔄 Jugar de nuevo</button>
         <button class="btn-reiniciar" onclick="mostrarPortada()" style="background: rgba(255,255,255,0.2); color: white;">🏠 Menú</button>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        // ========================================
-        // ESTADO DEL JUEGO (TABLERO COMPARTIDO)
-        // ========================================
-        let numOponentes = 2;
-        let jugadores = [];
-        let turnoActual = 0;
-        let juegoActivo = false;
-        let intervaloActual = null;
-
-        // Tablero compartido
-        let casillas = { 1: null, 2: null, 3: null, 4: null, 5: null }; // null o idJugador
-        let pozo = 0; // contador global del pozo
-
-        const emojis = ['😎', '🤖', '👾', '🦾'];
-        const nombres = ['Tú', 'Bot-1', 'Bot-2', 'Bot-3'];
-
-        function seleccionarOponentes(num, btn) {
-            numOponentes = num;
-            document.querySelectorAll('.btn-oponente').forEach(b => b.classList.remove('seleccionado'));
-            btn.classList.add('seleccionado');
-        }
-
-        function inicializarJugadores() {
-            jugadores = [];
-            for (let i = 0; i <= numOponentes; i++) {
-                jugadores.push({
-                    id: i,
-                    nombre: nombres[i],
-                    emoji: emojis[i],
-                    fichas: 6,
-                    esIA: i > 0
-                });
-            }
-            // Resetear tablero compartido
-            casillas = { 1: null, 2: null, 3: null, 4: null, 5: null };
-            pozo = 0;
-        }
-
-        function crearPanelJugadores() {
-            const panel = document.getElementById('panel-jugadores');
-            panel.innerHTML = '';
-            
-            jugadores.forEach((jugador, index) => {
-                const card = document.createElement('div');
-                card.className = `jugador-card ${jugador.esIA ? 'ia' : ''}`;
-                card.id = `jugador-${index}`;
-                card.innerHTML = `
-                    <div class="jugador-emoji">${jugador.emoji}</div>
-                    <div class="jugador-nombre">${jugador.nombre}</div>
-                    <div class="jugador-fichas">🪙 ${jugador.fichas}</div>
-                `;
-                panel.appendChild(card);
-            });
-            actualizarPanelJugadores();
-        }
-
-        function actualizarPanelJugadores() {
-            jugadores.forEach((jugador, index) => {
-                const card = document.getElementById(`jugador-${index}`);
-                if (card) {
-                    card.querySelector('.jugador-fichas').textContent = `🪙 ${jugador.fichas}`;
-                    card.classList.remove('activo');
-                    if (index === turnoActual && juegoActivo) {
-                        card.classList.add('activo');
-                    }
-                }
-            });
-        }
-
-        function actualizarTablero() {
-            // Actualizar casillas 1-5
-            for (let i = 1; i <= 5; i++) {
-                const casilla = document.getElementById(`casilla-${i}`);
-                const dueño = casillas[i];
-                if (dueño !== null) {
-                    casilla.classList.add('ocupado');
-                    const emoji = casilla.querySelector('.dueño-emoji');
-                    emoji.textContent = jugadores[dueño].emoji;
-                } else {
-                    casilla.classList.remove('ocupado');
-                }
-            }
-            
-            // Actualizar pozo
-            const contadorPozo = document.getElementById('contador-pozo');
-            contadorPozo.textContent = pozo;
-            if (pozo > 0) {
-                contadorPozo.classList.add('visible');
-            } else {
-                contadorPozo.classList.remove('visible');
-            }
-            
-            // Indicador de turno
-            const indicador = document.getElementById('turno-indicador');
-            if (!juegoActivo) {
-                indicador.textContent = '🎲 Sorteando...';
-            } else {
-                const actual = jugadores[turnoActual];
-                indicador.textContent = actual.esIA ? `🤖 Turno de ${actual.nombre}` : '🎮 Tu turno';
-            }
-        }
-
-        function colocarFicha(numero) {
-            if (!juegoActivo) return false;
-            
-            const jugadorActual = jugadores[turnoActual];
-            let mantieneTurno = false;
-            
-            if (numero >= 1 && numero <= 5) {
-                if (casillas[numero] === null) {
-                    // Vacía: colocar ficha del jugador actual
-                    casillas[numero] = turnoActual;
-                    jugadorActual.fichas--;
-                    mantieneTurno = true;   // sigue tirando
-                } else {
-                    // Ocupada: recoger ficha (sin importar quién la puso)
-                    // El dueño anterior no recupera la ficha, simplemente se la lleva el actual
-                    casillas[numero] = null;
-                    jugadorActual.fichas++;
-                    mantieneTurno = false;  // pierde turno
-                }
-            }
-            
-            if (numero === 6) {
-                pozo++;
-                jugadorActual.fichas--;
-                mantieneTurno = true;   // no pierde turno
-            }
-            
-            iluminarCasilla(numero);
-            actualizarPanelJugadores();
-            actualizarTablero();
-            
-            if (jugadorActual.fichas === 0) {
-                terminarJuego(turnoActual);
-                return false;
-            }
-            
-            return mantieneTurno;
-        }
-
-        function iluminarCasilla(numero) {
-            document.querySelectorAll('.cuadrado, #c6').forEach(el => el.classList.remove('iluminado'));
-            if (numero === 6) {
-                document.getElementById('c6').classList.add('iluminado');
-            } else {
-                document.getElementById(`casilla-${numero}`).classList.add('iluminado');
-            }
-        }
-
-        function siguienteTurno() {
-            turnoActual = (turnoActual + 1) % jugadores.length;
-            actualizarPanelJugadores();
-            actualizarTablero();
-            
-            if (jugadores[turnoActual].esIA) {
-                document.getElementById('boton').disabled = true;
-                setTimeout(() => turnoIA(), 1500);
-            } else {
-                document.getElementById('boton').disabled = false;
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            }
-        }
-
-        function turnoIA() {
-            if (!juegoActivo) return;
-            const numero = Math.floor(Math.random() * 6) + 1;
-            animarRodillo(numero, () => {
-                const mantieneTurno = colocarFicha(numero);
-                if (!juegoActivo) return;
-                if (mantieneTurno) {
-                    setTimeout(() => turnoIA(), 1200);
-                } else {
-                    siguienteTurno();
-                }
-            });
-        }
-
-        function terminarJuego(ganadorId) {
-            juegoActivo = false;
-            document.getElementById('boton').disabled = true;
-            
-            const ganador = jugadores[ganadorId];
-            document.getElementById('mensaje-titulo').textContent = ganador.esIA ? '😢 ¡DERROTA!' : '🎉 ¡VICTORIA!';
-            document.getElementById('mensaje-texto').textContent = ganador.esIA ? 
-                `${ganador.emoji} ${ganador.nombre} ha ganado.` : '¡Has ganado la partida!';
-            document.getElementById('mensaje-victoria').style.display = 'block';
-            
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        }
-
-        function reiniciarPartida() {
-            document.getElementById('mensaje-victoria').style.display = 'none';
-            iniciarJuego();
-        }
-
-        // ========================================
-        // SORTEO RÁPIDO (mayor número)
-        // ========================================
-        let participantesSorteo = [];
-        let resultadosSorteo = [];
-
-        function iniciarSorteo() {
-            juegoActivo = false;
-            document.getElementById('sorteo-info').style.display = 'block';
-            document.getElementById('boton').disabled = true;
-            participantesSorteo = jugadores.map(j => j.id); // todos
-            resultadosSorteo = [];
-            ejecutarRondaSorteo();
-        }
-
-        function ejecutarRondaSorteo() {
-            if (participantesSorteo.length === 1) {
-                // Solo queda uno, él empieza
-                finalizarSorteo(participantesSorteo[0]);
-                return;
-            }
-            
-            // Realizar tiradas secuenciales de los participantes
-            let indice = 0;
-            resultadosSorteo = [];
-            
-            function tirarSiguiente() {
-                if (indice >= participantesSorteo.length) {
-                    // Todos tiraron, evaluar
-                    const maximo = Math.max(...resultadosSorteo.map(r => r.numero));
-                    const empatados = resultadosSorteo.filter(r => r.numero === maximo).map(r => r.id);
-                    if (empatados.length === 1) {
-                        finalizarSorteo(empatados[0]);
-                    } else {
-                        // Nueva ronda solo con empatados
-                        participantesSorteo = empatados;
-                        setTimeout(() => ejecutarRondaSorteo(), 800);
-                    }
-                    return;
-                }
-                
-                const idJugador = participantesSorteo[indice];
-                const jugador = jugadores[idJugador];
-                document.getElementById('turno-indicador').textContent = `🎲 ${jugador.emoji} ${jugador.nombre} tira...`;
-                
-                const numero = Math.floor(Math.random() * 6) + 1;
-                animarRodillo(numero, () => {
-                    resultadosSorteo.push({ id: idJugador, numero: numero });
-                    indice++;
-                    tirarSiguiente();
-                });
-            }
-            
-            tirarSiguiente();
-        }
-
-        function finalizarSorteo(idGanador) {
-            document.getElementById('sorteo-info').style.display = 'none';
-            turnoActual = idGanador;
-            juegoActivo = true;
-            actualizarPanelJugadores();
-            actualizarTablero();
-            
-            if (jugadores[turnoActual].esIA) {
-                document.getElementById('boton').disabled = true;
-                document.getElementById('turno-indicador').textContent = `🤖 Turno de ${jugadores[turnoActual].nombre}`;
-                setTimeout(() => turnoIA(), 1500);
-            } else {
-                document.getElementById('boton').disabled = false;
-                document.getElementById('turno-indicador').textContent = '🎮 Tu turno';
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            }
-        }
-
-        // ========================================
-        // ANIMACIÓN DEL RODILLO
-        // ========================================
-        function inicializarRodillo() {
-            const rodillo = document.getElementById('numeros');
-            rodillo.innerHTML = '';
-            for (let i = 0; i < 5; i++) {
-                for (let j = 1; j <= 6; j++) {
-                    const div = document.createElement('div');
-                    div.className = 'numero-rodillo';
-                    div.textContent = j;
-                    rodillo.appendChild(div);
-                }
-            }
-            rodillo.style.transform = 'translateY(0px)';
-        }
-
-        function animarRodillo(numeroFinal, callback) {
-            if (intervaloActual) clearInterval(intervaloActual);
-            inicializarRodillo();
-            
-            const rodillo = document.getElementById('numeros');
-            const slotMachine = document.querySelector('.slot-machine');
-            slotMachine.classList.add('vibrando');
-            
-            let posicion = 0;
-            let framesAvanzados = 0;
-            const totalFrames = 100;
-            
-            intervaloActual = setInterval(() => {
-                rodillo.style.transform = `translateY(-${posicion * 70}px)`;
-                posicion++;
-                framesAvanzados++;
-                if (posicion >= 30) {
-                    posicion = 0;
-                    inicializarRodillo();
-                }
-                if (framesAvanzados >= totalFrames) {
-                    clearInterval(intervaloActual);
-                    slotMachine.classList.remove('vibrando');
-                    rodillo.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-                    rodillo.style.transform = `translateY(-${(numeroFinal - 1) * 70}px)`;
-                    setTimeout(() => {
-                        if (callback) callback();
-                        setTimeout(() => { rodillo.style.transition = 'transform 0.1s linear'; }, 500);
-                    }, 800);
-                }
-            }, 30);
-        }
-
-        function tirarPalanca() {
-            const boton = document.getElementById('boton');
-            if (boton.disabled || !juegoActivo || jugadores[turnoActual].esIA) return;
-            
-            boton.disabled = true;
-            const numero = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('resultado').style.display = 'none';
-            
-            animarRodillo(numero, () => {
-                document.getElementById('resultado').textContent = `🎯 ${numero}`;
-                document.getElementById('resultado').style.display = 'block';
-                
-                const mantieneTurno = colocarFicha(numero);
-                if (!juegoActivo) return;
-                
-                if (mantieneTurno) {
-                    boton.disabled = false;
-                    document.getElementById('turno-indicador').textContent = '🎮 ¡Sigues tirando!';
-                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                } else {
-                    siguienteTurno();
-                }
-            });
-        }
-
-        // ========================================
-        // NAVEGACIÓN
-        // ========================================
-        function mostrarPantalla(id) {
-            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-            document.getElementById(id).classList.add('activa');
-        }
-
-        function mostrarPortada() {
-            document.getElementById('mensaje-victoria').style.display = 'none';
-            juegoActivo = false;
-            document.getElementById('sorteo-info').style.display = 'none';
-            mostrarPantalla('portada');
-        }
-
-        function mostrarInstrucciones() {
-            mostrarPantalla('instrucciones');
-        }
-
-        function iniciarJuego() {
-            inicializarJugadores();
-            juegoActivo = false;
-            
-            inicializarRodillo();
-            crearPanelJugadores();
-            actualizarTablero();
-            
-            document.getElementById('resultado').style.display = 'none';
-            document.getElementById('mensaje-victoria').style.display = 'none';
-            document.getElementById('boton').disabled = true;
-            
-            mostrarPantalla('juego');
-            
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            
-            setTimeout(() => iniciarSorteo(), 500);
-        }
-
-        document.getElementById('boton').addEventListener('click', (e) => {
-            e.preventDefault();
-            tirarPalanca();
-        });
-
-        // Inicializar
-        inicializarJugadores();
-        crearPanelJugadores();
-        inicializarRodillo();
-    </script>
+    <!-- ============ SCRIPTS ============ -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
