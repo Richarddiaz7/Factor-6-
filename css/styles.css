@@ -1,0 +1,256 @@
+/* ============================================================
+   FACTOR 6 - Estilos Dark-Neon
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --tg-theme-bg-color: #1a1a2e;
+    --tg-theme-text-color: #eee;
+    --tg-theme-hint-color: #999;
+    --tg-theme-link-color: #ffd700;
+    --tg-theme-button-color: #ff7e5f;
+    --tg-theme-button-text-color: #fff;
+
+    --cell-size: 60px;
+    --gap: 12px;
+    --border-radius: 14px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Fondo Dark-Neon */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #FF7E5F, #8A2387, #243B55);
+    opacity: 0.85;
+    z-index: -1;
+}
+
+#app {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding-top: 20px;
+}
+
+/* ---------- Marcador ---------- */
+.scoreboard {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.player-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.player-badge .label {
+    font-size: 0.8rem;
+    color: var(--tg-theme-hint-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.player-badge .score {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--tg-theme-link-color);
+    line-height: 1.2;
+}
+
+.versus {
+    font-size: 1.4rem;
+    font-weight: 300;
+    opacity: 0.5;
+}
+
+/* ---------- Tablero ---------- */
+.board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap);
+    width: 100%;
+}
+
+.top-row {
+    display: flex;
+    gap: var(--gap);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border-radius: var(--border-radius);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    color: var(--tg-theme-text-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+.cell:active {
+    transform: scale(0.92);
+}
+
+.cell.selected {
+    border-color: var(--tg-theme-link-color);
+    box-shadow: 0 0 18px var(--tg-theme-link-color);
+    transform: scale(1.05);
+}
+
+.cell.opponent-selected {
+    border-color: #ff3860;
+    box-shadow: 0 0 14px #ff3860;
+}
+
+.cell.highlight {
+    animation: pulse 0.6s ease 3;
+    border-color: #00ff88;
+    box-shadow: 0 0 24px #00ff88;
+}
+
+.cell.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+/* El número 6 - trapecio invertido */
+.factor-six {
+    width: 150px;
+    height: 70px;
+    clip-path: polygon(8% 0, 92% 0, 100% 100%, 0% 100%);
+    border-radius: 0;
+    background: linear-gradient(145deg, #ffd700, #ffaa00);
+    color: #1a1a2e;
+    font-size: 1.8rem;
+    border: none;
+    margin-top: 8px;
+}
+
+.factor-six .multiplier {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background: #ff3860;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 20px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+}
+
+/* ---------- Ruleta ---------- */
+.wheel {
+    width: 220px;
+    height: 220px;
+    position: relative;
+    margin: 5px 0;
+}
+
+.wheel-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        #ff5733 0deg 60deg,
+        #ffc300 60deg 120deg,
+        #daf7a6 120deg 180deg,
+        #33ffbd 180deg 240deg,
+        #3380ff 240deg 300deg,
+        #ffd700 300deg 360deg
+    );
+    border: 6px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
+    transition: transform 4s cubic-bezier(0.15, 0.7, 0.2, 1);
+    position: relative;
+}
+
+.wheel-number {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-origin: 0 0;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 24px solid white;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    z-index: 5;
+}
+
+/* ---------- Indicador de fase ---------- */
+.phase-indicator {
+    font-size: 0.9rem;
+    color: var(--tg-theme-hint-color);
+    padding: 6px 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.4s;
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+    70% { box-shadow: 0 0 0 18px rgba(0, 255, 136, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
