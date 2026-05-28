@@ -6,11 +6,11 @@ class LobbyManager {
   static async crearSala(modo, numBots = 1, apuesta = 0, maxJugadores = 4) {
     const user = auth.currentUser;
     if (!user) {
-      alert('❌ Debes iniciar sesión primero');
+      alert('Debes iniciar sesión primero');
       return null;
     }
 
-    console.log(`📝 Creando sala: modo=${modo}, bots=${numBots}, apuesta=${apuesta}, max=${maxJugadores}`);
+    console.log('Creando sala:', modo, numBots, apuesta, maxJugadores);
 
     let perfil = null;
     try {
@@ -22,7 +22,7 @@ class LobbyManager {
     const nombre = perfil?.nombre || 'Jugador';
 
     if (apuesta > 0 && perfil && perfil.monedas < apuesta) {
-      alert(`❌ No tienes suficientes monedas. Tienes ${perfil.monedas} 💰`);
+      alert('No tienes suficientes monedas');
       return null;
     }
 
@@ -43,21 +43,18 @@ class LobbyManager {
         creado: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      console.log('📤 Guardando en Firestore:', docData);
-
       const salaRef = await db.collection('salas').add(docData);
-      console.log('✅ Documento creado con ID:', salaRef.id);
+      console.log('Sala creada con ID:', salaRef.id);
 
       if (modo === 'solitario') {
         await salaRef.update({ estado: 'jugando' });
-        console.log('▶️ Sala solitario iniciada automáticamente');
       }
 
       return salaRef.id;
 
     } catch (error) {
-      console.error('❌ Error al crear sala:', error);
-      alert('❌ Error al crear la sala: ' + error.message);
+      console.error('Error al crear sala:', error);
+      alert('Error al crear la sala');
       return null;
     }
   }
@@ -65,7 +62,7 @@ class LobbyManager {
   static async unirseSala(salaId) {
     const user = auth.currentUser;
     if (!user) {
-      alert('❌ Debes iniciar sesión primero');
+      alert('Debes iniciar sesión');
       return;
     }
 
@@ -88,7 +85,7 @@ class LobbyManager {
         if (sala.jugadores.length >= sala.maxJugadores) throw new Error('Sala llena');
         if (sala.jugadores.some(j => j.uid === user.uid)) throw new Error('Ya estás en esta sala');
         if (sala.apuesta > 0 && perfil && perfil.monedas < sala.apuesta) {
-          throw new Error(`Necesitas ${sala.apuesta} monedas. Tienes ${perfil.monedas}`);
+          throw new Error('Monedas insuficientes');
         }
 
         if (sala.apuesta > 0) {
@@ -105,7 +102,7 @@ class LobbyManager {
         transaction.update(salaRef, { jugadores: nuevosJugadores, estado: nuevoEstado });
       });
 
-      console.log('✅ Unido a sala:', salaId);
+      console.log('Unido a sala:', salaId);
 
     } catch (error) {
       console.error('Error al unirse:', error);
@@ -120,24 +117,24 @@ class LobbyManager {
     try {
       const salaDoc = await salaRef.get();
       if (!salaDoc.exists) {
-        alert('❌ La sala ya no existe');
+        alert('La sala ya no existe');
         return;
       }
       const sala = salaDoc.data();
       if (sala.creador !== user.uid) {
-        alert('❌ Solo el creador puede iniciar la partida');
+        alert('Solo el creador puede iniciar');
         return;
       }
       if (sala.jugadores.length < 2) {
-        alert('❌ Se necesitan al menos 2 jugadores');
+        alert('Se necesitan al menos 2 jugadores');
         return;
       }
 
       await salaRef.update({ estado: 'jugando' });
-      console.log('✅ Partida iniciada manualmente');
+      console.log('Partida iniciada manualmente');
     } catch (error) {
       console.error('Error al iniciar:', error);
-      alert('❌ Error al iniciar');
+      alert('Error al iniciar');
     }
   }
 
