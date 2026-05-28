@@ -1,5 +1,5 @@
 // js/sound.js
-// Gestión de sonidos con Web Audio API (sin archivos externos)
+// Gestión de sonidos con Web Audio API
 
 class SoundManager {
   constructor() {
