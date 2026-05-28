@@ -13,7 +13,6 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body { 
             margin: 0; 
             background: linear-gradient(135deg, #1a0033 0%, #2d004d 30%, #4a0072 70%, #1a0033 100%);
@@ -22,22 +21,18 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
             color: white; overflow: hidden; user-select: none; -webkit-user-select: none;
         }
-
         .pantalla {
             display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; 
             justify-content: center; padding: 20px; position: absolute; top: 0; left: 0;
         }
         .pantalla.activa { display: flex; }
-
         #portada { background: linear-gradient(135deg, #1a0033 0%, #2d004d 40%, #4a0072 100%); gap: 30px; }
         #perfil, #lobby, #ranking, #instrucciones { background: rgba(0,0,0,0.95); gap: 20px; overflow-y: auto; justify-content: flex-start; padding-top: 40px; }
-
         .logo-container { text-align: center; animation: flotar 3s ease-in-out infinite; }
         @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .logo-dado { font-size: 8em; filter: drop-shadow(0 0 30px rgba(255,215,0,0.8)); }
         .titulo-juego { font-size: 2.5em; font-weight: 900; color: #FFD700; text-shadow: 0 0 20px rgba(255,215,0,0.5); letter-spacing: 5px; margin-top: 10px; }
         .subtitulo { font-size: 1em; color: rgba(255,255,255,0.7); margin-top: 5px; }
-
         .menu-botones { display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 300px; }
         .btn-menu {
             padding: 18px 30px; font-size: 1.2em; font-weight: bold; border: none; border-radius: 30px;
@@ -46,9 +41,7 @@
         .btn-jugar { background: linear-gradient(180deg, #FFD700, #B8860B); color: #1a0030; box-shadow: 0 5px 20px rgba(255,215,0,0.5); border: 3px solid #FFD700; }
         .btn-instrucciones { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
         .btn-menu:active { transform: scale(0.95); }
-
         .btn-volver { padding: 12px 30px; background: #FFD700; color: #000; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1em; margin: 20px 0; }
-
         #juego { flex-direction: column; justify-content: space-between; padding: 5px; gap: 5px; }
         .panel-jugadores { display: flex; justify-content: space-around; width: 100%; gap: 10px; flex-wrap: wrap; }
         .jugador-card {
@@ -64,7 +57,6 @@
         .jugador-fichas { background: rgba(255,215,0,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.9em; color: #FFD700; font-weight: bold; }
         .ia .jugador-nombre { color: #BA68C8; }
         .ia .jugador-fichas { background: rgba(156,39,176,0.2); color: #BA68C8; }
-
         #tablero-container { width: 95%; max-width: 500px; background: rgba(0,0,0,0.7); border-radius: 20px; padding: 10px; border: 3px solid #FFD700; box-shadow: 0 0 30px rgba(255,215,0,0.3); }
         .fila-superior { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
         .cuadrado {
@@ -80,7 +72,6 @@
         @keyframes colocarFicha { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .cuadrado.ocupado .ficha { display: block; }
         .cuadrado.ocupado { border-color: #FFD700 !important; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
-
         #c6-container { display: flex; justify-content: center; margin-top: 8px; }
         #c6 {
             width: 180px; height: 75px; background: linear-gradient(135deg, #B8860B, #FFD700);
@@ -90,13 +81,11 @@
         }
         #c6 .contador-pozo { font-size: 0.6em; background: rgba(0,0,0,0.3); color: white; padding: 2px 10px; border-radius: 10px; display: none; }
         #c6 .contador-pozo.visible { display: block; }
-
         .c1 { background: linear-gradient(135deg, #FF5733, #C70039); }
         .c2 { background: linear-gradient(135deg, #FFC300, #FF8C00); }
         .c3 { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
         .c4 { background: linear-gradient(135deg, #2196F3, #1565C0); }
         .c5 { background: linear-gradient(135deg, #9C27B0, #6A1B9A); }
-
         .slot-machine {
             background: linear-gradient(180deg, #2a0040 0%, #1a0030 50%, #0d0020 100%); border: 3px solid #FFD700;
             border-radius: 15px; padding: 10px; box-shadow: 0 0 20px rgba(255,215,0,0.5);
@@ -107,36 +96,31 @@
         .numeros-rodillo { position: absolute; width: 100%; transition: transform 0.1s linear; }
         .numero-rodillo { width: 100%; height: 70px; display: flex; justify-content: center; align-items: center; font-size: 2.5em; font-weight: 900; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.8); background: linear-gradient(180deg, #2a2a2a, #1a1a1a); border-bottom: 1px solid #333; }
         .marcador-central { position: absolute; top: 50%; left: 0; right: 0; height: 70px; border-top: 2px solid #FFD700; border-bottom: 2px solid #FFD700; transform: translateY(-50%); z-index: 3; pointer-events: none; }
-
         .btn-lanzar { padding: 10px 25px; font-size: 0.9em; background: linear-gradient(180deg, #FFD700, #B8860B); border: 2px solid #FFD700; border-radius: 20px; cursor: pointer; font-weight: bold; color: #1a0030; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 3px 10px rgba(255,215,0,0.5); }
         .btn-lanzar:disabled { opacity: 0.5; cursor: not-allowed; }
-
         .iluminado { border-color: #FFD700 !important; box-shadow: 0 0 20px #FFD700 !important; animation: brilloCasilla 0.5s ease-in-out infinite alternate; }
         @keyframes brilloCasilla { 0% { box-shadow: 0 0 10px #FFD700; } 100% { box-shadow: 0 0 30px #FFD700, 0 0 50px rgba(255,215,0,0.5); } }
         .resultado-numero { font-size: 1.5em; color: #FFD700; text-shadow: 0 0 15px #FFD700; font-weight: bold; display: none; }
-
         .mensaje-victoria { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); border: 3px solid #FFD700; border-radius: 20px; padding: 25px; text-align: center; z-index: 100; display: none; animation: aparecer 0.5s ease-out; }
         @keyframes aparecer { from { transform: translate(-50%, -50%) scale(0); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
         .mensaje-victoria h2 { color: #FFD700; font-size: 1.8em; margin-bottom: 10px; }
         .btn-reiniciar { padding: 10px 25px; background: #FFD700; color: #000; border: none; border-radius: 20px; font-size: 1em; font-weight: bold; cursor: pointer; margin: 5px; }
-
         .turno-indicador { text-align: center; color: #FFD700; font-weight: bold; font-size: 0.9em; padding: 5px; }
         .sorteo-info { text-align: center; color: #FFD700; font-size: 1em; margin: 5px 0; animation: flotar 2s ease-in-out infinite; }
-
         .instrucciones-container { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; border: 2px solid rgba(255,215,0,0.3); width: 90%; max-width: 500px; backdrop-filter: blur(10px); }
         .instrucciones-container h2 { color: #FFD700; text-align: center; margin-bottom: 20px; font-size: 1.8em; }
         .regla { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #FFD700; }
         .regla h3 { color: #FFD700; margin-bottom: 5px; }
         .regla p { color: rgba(255,255,255,0.8); font-size: 0.9em; line-height: 1.4; }
-
         .perfil-info { background:rgba(0,0,0,0.5); padding:20px; border-radius:15px; width:90%; max-width:350px; }
         .perfil-info p { margin: 10px 0; font-size: 1.1em; }
         .input-nombre { width:100%; padding:10px; margin-top:15px; border-radius:10px; border:2px solid #FFD700; background:rgba(0,0,0,0.7); color:white; font-size:1em; }
-
-        .sala-card { background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,215,0,0.3); cursor:pointer; transition: all 0.2s; }
+        .sala-card { background:rgba(0,0,0,0.5); padding:12px; border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,215,0,0.3); transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .sala-card:hover { border-color: #FFD700; background: rgba(255,215,0,0.1); }
-
         .ranking-item { background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,215,0,0.3); }
+        .btn-pequeno { padding: 8px 16px; font-size: 0.8em; border-radius: 15px; cursor: pointer; font-weight: bold; border: none; }
+        .btn-unirse { background: #4CAF50; color: white; }
+        .btn-iniciar { background: #FF9800; color: #000; }
     </style>
 </head>
 <body>
@@ -148,7 +132,6 @@
             <div class="titulo-juego">FACTOR 6</div>
             <div class="subtitulo">Juego de Estrategia y Suerte</div>
         </div>
-
         <div class="menu-botones">
             <button class="btn-menu btn-jugar" onclick="mostrarLobby()">🎰 JUGAR</button>
             <button class="btn-menu btn-instrucciones" onclick="mostrarPerfil()">👤 PERFIL</button>
@@ -173,26 +156,49 @@
 
     <!-- ============ LOBBY ============ -->
     <div id="lobby" class="pantalla">
-        <h2 style="color:#FFD700; margin-bottom:15px;">🎮 LOBBY</h2>
+        <h2 style="color:#FFD700; margin-bottom:10px;">🎮 LOBBY</h2>
         
-        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:15px;">
-            <button onclick="crearSala('solitario', 1)" class="btn-lanzar">🤖 Solitario (1 bot)</button>
-            <button onclick="crearSala('solitario', 2)" class="btn-lanzar">🤖🤖 vs 2 bots</button>
-            <button onclick="crearSala('multijugador', 0)" class="btn-lanzar">👥 Multijugador</button>
+        <!-- Crear nueva sala -->
+        <div style="background:rgba(0,0,0,0.4); padding:15px; border-radius:15px; width:90%; max-width:400px; margin-bottom:15px;">
+            <h3 style="color:#FFD700; margin-bottom:10px;">➕ Crear sala</h3>
+            
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;">
+                <button onclick="crearSala('solitario', 1)" class="btn-lanzar" style="font-size:0.8em;">🤖 Solitario (1 bot)</button>
+                <button onclick="crearSala('solitario', 2)" class="btn-lanzar" style="font-size:0.8em;">🤖🤖 vs 2 bots</button>
+                <button onclick="mostrarPanelMultijugador()" class="btn-lanzar" style="font-size:0.8em;">👥 Multijugador</button>
+            </div>
+            
+            <!-- Panel multijugador (oculto inicialmente) -->
+            <div id="panel-multijugador" style="display:none; margin-top:10px;">
+                <div style="margin-bottom:8px; text-align:center;">
+                    <label style="color:#FFD700;">👥 Máximo jugadores:</label>
+                    <select id="jugadores-select" style="padding:6px; border-radius:8px; background:rgba(0,0,0,0.7); color:white; border:2px solid #FFD700; margin-left:8px;">
+                        <option value="2">2 jugadores</option>
+                        <option value="3">3 jugadores</option>
+                        <option value="4">4 jugadores</option>
+                        <option value="5">5 jugadores</option>
+                        <option value="6">6 jugadores</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:8px; text-align:center;">
+                    <label style="color:#FFD700;">💰 Apuesta:</label>
+                    <select id="apuesta-select" style="padding:6px; border-radius:8px; background:rgba(0,0,0,0.7); color:white; border:2px solid #FFD700; margin-left:8px;">
+                        <option value="0">Sin apuesta</option>
+                        <option value="10">10 monedas</option>
+                        <option value="50">50 monedas</option>
+                        <option value="100">100 monedas</option>
+                    </select>
+                </div>
+                <button onclick="crearSalaMultijugador()" class="btn-lanzar" style="width:100%;">➕ Crear sala multijugador</button>
+            </div>
         </div>
         
-        <div style="margin-bottom:15px; text-align:center;">
-            <label style="color:#FFD700;">💰 Apuesta:</label>
-            <select id="apuesta-select" style="padding:8px; border-radius:10px; background:rgba(0,0,0,0.7); color:white; border:2px solid #FFD700; margin-left:10px;">
-                <option value="0">Sin apuesta</option>
-                <option value="10">10 monedas</option>
-                <option value="50">50 monedas</option>
-                <option value="100">100 monedas</option>
-            </select>
-        </div>
-        
-        <div id="salas-disponibles" style="width:90%; max-width:400px; overflow-y:auto; max-height:300px;">
-            <p style="color:rgba(255,255,255,0.5); text-align:center;">Cargando salas...</p>
+        <!-- Salas disponibles -->
+        <div style="width:90%; max-width:400px;">
+            <h3 style="color:#FFD700; margin-bottom:8px;">📋 Salas disponibles</h3>
+            <div id="salas-disponibles" style="max-height:300px; overflow-y:auto;">
+                <p style="color:rgba(255,255,255,0.5); text-align:center;">Cargando salas...</p>
+            </div>
         </div>
         
         <button class="btn-volver" onclick="salirLobby()">⬅ VOLVER</button>
@@ -222,7 +228,6 @@
     <div id="juego" class="pantalla">
         <div class="panel-jugadores" id="panel-jugadores"></div>
         <div class="sorteo-info" id="sorteo-info" style="display:none;">🎲 Sorteando quién empieza...</div>
-
         <div id="tablero-container">
             <div class="turno-indicador" id="turno-indicador">🎮 Tu turno</div>
             <div class="fila-superior">
@@ -236,7 +241,6 @@
                 <div id="c6"><span>6 - POZO</span><span class="contador-pozo" id="contador-pozo">0</span></div>
             </div>
         </div>
-
         <div class="slot-machine">
             <div class="slot-ventana">
                 <div class="marcador-central"></div>
