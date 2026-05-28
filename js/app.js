@@ -11,7 +11,9 @@ if (tg) {
 let currentGame = null;
 let juegoActivo = false;
 let salaActualId = null;
+let partidaActualId = null;      // ID del documento en partidas (normalmente = salaId)
 let unsubscribeSala = null;
+let unsubscribePartida = null;   // Listener de la partida en Firestore
 let unsubscribeRanking = null;
 let unsubscribeSalas = null;
 
@@ -87,7 +89,6 @@ async function guardarNombre() {
 function mostrarLobby() {
   mostrarPantalla('lobby');
   
-  // Ocultar panel multijugador al entrar
   const panel = document.getElementById('panel-multijugador');
   if (panel) panel.style.display = 'none';
   
@@ -136,7 +137,6 @@ function mostrarPanelMultijugador() {
   if (panel) panel.style.display = 'block';
 }
 
-// Crear sala solitario
 async function crearSala(modo, numBots) {
   console.log(`🎯 Creando sala: ${modo}, bots: ${numBots}`);
   try {
@@ -151,7 +151,6 @@ async function crearSala(modo, numBots) {
   }
 }
 
-// Crear sala multijugador
 async function crearSalaMultijugador() {
   console.log('🎯 Creando sala multijugador...');
   
@@ -175,7 +174,6 @@ async function crearSalaMultijugador() {
   }
 }
 
-// Unirse a sala
 async function unirseASala(salaId) {
   console.log('🔗 Uniendo a sala:', salaId);
   try {
@@ -187,13 +185,11 @@ async function unirseASala(salaId) {
   }
 }
 
-// Iniciar partida manualmente
 async function iniciarPartida(salaId) {
   console.log('▶️ Iniciando partida:', salaId);
   await LobbyManager.iniciarPartida(salaId);
 }
 
-// Suscribirse a cambios de sala
 function suscribirseASala(salaId) {
   salaActualId = salaId;
   if (unsubscribeSala) unsubscribeSala();
@@ -203,19 +199,16 @@ function suscribirseASala(salaId) {
     }
     if (sala && sala.estado === 'terminada') {
       console.log('🏁 Sala terminada');
-      // Limpiar sala terminada
       LobbyManager.eliminarSala(salaId);
       salaActualId = null;
     }
     if (!sala) {
-      // La sala fue eliminada
       salaActualId = null;
     }
   });
 }
 
 async function salirLobby() {
-  // Si hay una sala creada y el usuario es el creador, eliminarla
   if (salaActualId && auth.currentUser) {
     try {
       const salaDoc = await db.collection('salas').doc(salaActualId).get();
@@ -269,14 +262,15 @@ function salirRanking() {
 }
 
 // ========================================
-// INICIAR PARTIDA DESDE SALA
+// INICIAR PARTIDA DESDE SALA (con Firestore)
 // ========================================
 
-function iniciarPartidaDesdeSala(sala) {
+async function iniciarPartidaDesdeSala(sala) {
   console.log('🎮 Iniciando partida desde sala:', sala.id);
-  mostrarPantalla('juego');
-  if (typeof uiManager !== 'undefined') uiManager.ocultarResultadoFinal();
-
+  
+  partidaActualId = sala.id; // usamos el mismo ID de sala para la partida
+  
+  // Construir jugadores
   const jugadores = sala.jugadores.map(j => ({
     nombre: j.nombre,
     emoji: '😎',
@@ -285,164 +279,132 @@ function iniciarPartidaDesdeSala(sala) {
     uid: j.uid
   }));
 
+  // Añadir bots en solitario
   if (sala.modo === 'solitario') {
     for (let i = 0; i < sala.numBots; i++) {
       jugadores.push({
         nombre: `Bot-${i + 1}`,
         emoji: '🤖',
         fichas: 6,
-        esIA: true
+        esIA: true,
+        uid: 'bot_' + i
       });
     }
   }
 
-  currentGame = new Factor6Game(jugadores);
-  currentGame.iniciar();
+  // Sorteo para ver quién empieza
+  const turnoInicial = await realizarSorteoLocal(jugadores);
+
+  // Crear documento de partida en Firestore
+  await GameManager.crearPartida(partidaActualId, jugadores, turnoInicial, sala.apuesta || 0);
+
+  // Mostrar pantalla de juego
+  mostrarPantalla('juego');
+  uiManager.ocultarResultadoFinal();
+
+  // Escuchar cambios en la partida
+  if (unsubscribePartida) unsubscribePartida();
+  unsubscribePartida = GameManager.escucharPartida(partidaActualId, (partida) => {
+    // Actualizar UI con el estado remoto
+    uiManager.actualizarPanelJugadores(partida.jugadores, partida.turnoActual);
+    uiManager.actualizarTablero(partida.casillas, partida.pozo);
+    
+    const jugadorActual = partida.jugadores[partida.turnoActual];
+    const esHumano = !jugadorActual.esIA;
+    uiManager.actualizarIndicadorTurno(jugadorActual, esHumano);
+    uiManager.habilitarGiro(esHumano && partida.estado === 'jugando');
+
+    // Iluminar última tirada
+    if (partida.ultimaTirada) {
+      uiManager.iluminarCasilla(partida.ultimaTirada.numero);
+    }
+
+    // Verificar fin de partida
+    if (partida.estado === 'terminada') {
+      juegoActivo = false;
+      const ganador = partida.jugadores[partida.ganador];
+      const esHumanoGanador = !ganador.esIA;
+      uiManager.mostrarResultadoFinal(ganador, esHumanoGanador);
+      uiManager.habilitarGiro(false);
+      
+      // Limpiar
+      if (unsubscribePartida) unsubscribePartida();
+      GameManager.eliminarPartida(partidaActualId);
+      partidaActualId = null;
+      
+      if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred(esHumanoGanador ? 'success' : 'error');
+    }
+
+    // Si el turno es de un bot, hacer que tire automáticamente
+    if (partida.estado === 'jugando' && jugadorActual.esIA && partida.turnoActual !== undefined) {
+      setTimeout(() => turnoIA(partidaActualId, partida.turnoActual), 1500);
+    }
+  });
+
   juegoActivo = true;
-  currentGame.apuesta = sala.apuesta || 0;
-
-  uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
-  uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
-
-  realizarSorteo().then(() => iniciarTurno());
 }
 
-// ========================================
-// SORTEO INICIAL
-// ========================================
-
-async function realizarSorteo() {
-  const info = document.getElementById('sorteo-info');
-  if (info) info.style.display = 'block';
-
+// Sorteo local (sin Firestore)
+async function realizarSorteoLocal(jugadores) {
   let ganador = null;
   let intentos = 0;
-
   while (!ganador && intentos < 20) {
     intentos++;
-    const resultados = currentGame.jugadores.map(jugador => ({
-      jugador,
-      numero: Math.floor(Math.random() * 6) + 1
-    }));
-    const maxNum = Math.max(...resultados.map(r => r.numero));
-    const ganadores = resultados.filter(r => r.numero === maxNum);
-    if (ganadores.length === 1) {
-      ganador = currentGame.jugadores.indexOf(ganadores[0].jugador);
-    }
-    await new Promise(resolve => setTimeout(resolve, 300));
+    const resultados = jugadores.map(() => Math.floor(Math.random() * 6) + 1);
+    const maxNum = Math.max(...resultados);
+    const ganadoresIndices = resultados.reduce((acc, num, idx) => {
+      if (num === maxNum) acc.push(idx);
+      return acc;
+    }, []);
+    if (ganadoresIndices.length === 1) ganador = ganadoresIndices[0];
+    await new Promise(r => setTimeout(r, 300));
   }
-
-  if (ganador === null) ganador = Math.floor(Math.random() * currentGame.jugadores.length);
-  currentGame.turnoActual = ganador;
-  if (info) info.style.display = 'none';
-  console.log('🎲 Empieza:', currentGame.jugadores[ganador].nombre);
+  if (ganador === null) ganador = Math.floor(Math.random() * jugadores.length);
+  return ganador;
 }
 
 // ========================================
-// GESTIÓN DE TURNOS
+// GESTIÓN DE TURNOS (basado en Firestore)
 // ========================================
 
-function iniciarTurno() {
-  if (!juegoActivo) return;
-
-  const jugadorActual = currentGame.getJugadorActual();
-  const esHumano = !jugadorActual.esIA;
-
-  uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
-  uiManager.actualizarIndicadorTurno(jugadorActual, esHumano);
-  uiManager.habilitarGiro(esHumano);
-
-  if (!esHumano) setTimeout(() => turnoIA(), 1500);
-}
-
-function turnoIA() {
-  if (!juegoActivo) return;
-  const numero = Math.floor(Math.random() * 6) + 1;
-  animarRodilloSimple(numero, () => {
-    const resultado = currentGame.procesarTirada(currentGame.turnoActual, numero);
-    if (!resultado) return;
-    uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
-    uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
-    uiManager.mostrarResultadoTirada(numero);
-    uiManager.iluminarCasilla(numero);
-    if (resultado.ganador !== undefined) {
-      finalizarJuego(resultado.ganador);
-      return;
-    }
-    if (!resultado.mantieneTurno) currentGame.siguienteTurno();
-    setTimeout(() => iniciarTurno(), 1000);
-  });
-}
-
-function tirarPalanca() {
-  if (!juegoActivo) return;
-  const jugadorActual = currentGame.getJugadorActual();
-  if (jugadorActual.esIA) return;
-  uiManager.habilitarGiro(false);
-  const numero = Math.floor(Math.random() * 6) + 1;
-  animarRodilloSimple(numero, () => {
-    const resultado = currentGame.procesarTirada(currentGame.turnoActual, numero);
-    if (!resultado) return;
-    uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
-    uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
-    uiManager.mostrarResultadoTirada(numero);
-    uiManager.iluminarCasilla(numero);
-    if (resultado.ganador !== undefined) {
-      finalizarJuego(resultado.ganador);
-      return;
-    }
-    if (!resultado.mantieneTurno) currentGame.siguienteTurno();
-    setTimeout(() => iniciarTurno(), 1000);
-  });
-}
-
-async function finalizarJuego(ganadorIndex) {
-  juegoActivo = false;
-  const ganador = currentGame.jugadores[ganadorIndex];
-  const esHumano = !ganador.esIA;
-  uiManager.mostrarResultadoFinal(ganador, esHumano);
-  uiManager.habilitarGiro(false);
+async function tirarPalanca() {
+  if (!juegoActivo || !partidaActualId) return;
 
   const user = auth.currentUser;
-  if (user && currentGame.apuesta > 0) {
-    try {
-      if (esHumano) {
-        await AuthManager.actualizarMonedas(user.uid, currentGame.apuesta * 2);
-        await db.collection('usuarios').doc(user.uid).update({
-          partidasGanadas: firebase.firestore.FieldValue.increment(1)
-        });
-      }
-      await db.collection('usuarios').doc(user.uid).update({
-        partidasJugadas: firebase.firestore.FieldValue.increment(1)
-      });
-    } catch (e) {
-      console.error('Error actualizando monedas:', e);
-    }
-  }
+  if (!user) return;
 
-  if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred(esHumano ? 'success' : 'error');
-  
-  if (salaActualId) {
-    try {
-      await LobbyManager.eliminarSala(salaActualId);
-    } catch (e) {
-      console.error('Error eliminando sala terminada:', e);
-    }
-    salaActualId = null;
+  const numero = Math.floor(Math.random() * 6) + 1;
+  console.log('🎲 Tirando dado:', numero);
+
+  // Deshabilitar botón inmediatamente
+  uiManager.habilitarGiro(false);
+
+  try {
+    await GameManager.tirarDado(partidaActualId, user.uid, numero);
+    // La UI se actualizará a través del listener
+    document.getElementById('resultado').textContent = `🎯 ${numero}`;
+    document.getElementById('resultado').style.display = 'block';
+  } catch (error) {
+    console.error('Error al tirar:', error);
+    alert(error.message);
+    // Re-habilitar si falla
+    uiManager.habilitarGiro(true);
   }
 }
 
-function reiniciarPartida() {
-  uiManager.ocultarResultadoFinal();
-  const jugadores = currentGame.jugadores.map(j => ({
-    nombre: j.nombre, emoji: j.emoji, fichas: 6, esIA: j.esIA, uid: j.uid
-  }));
-  currentGame = new Factor6Game(jugadores);
-  currentGame.iniciar();
-  juegoActivo = true;
-  uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
-  uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
-  realizarSorteo().then(() => iniciarTurno());
+async function turnoIA(partidaId, turnoIA) {
+  if (!juegoActivo) return;
+  
+  const numero = Math.floor(Math.random() * 6) + 1;
+  console.log('🤖 IA tirando:', numero);
+  
+  try {
+    // Construir un uid para el bot (debe coincidir con el que está en el documento)
+    const botUid = 'bot_' + turnoIA; // asumiendo que los bots se nombraron así
+    await GameManager.tirarDado(partidaId, botUid, numero);
+  } catch (error) {
+    console.error('Error en turno IA:', error);
+  }
 }
 
 function animarRodilloSimple(numeroFinal, callback) {
