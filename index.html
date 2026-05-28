@@ -27,7 +27,7 @@
         }
         .pantalla.activa { display: flex; }
         #portada { background: linear-gradient(135deg, #1a0033 0%, #2d004d 40%, #4a0072 100%); gap: 30px; }
-        #perfil, #lobby, #ranking, #instrucciones { background: rgba(0,0,0,0.95); gap: 20px; overflow-y: auto; justify-content: flex-start; padding-top: 40px; }
+        #perfil, #lobby, #ranking, #instrucciones, #creditos { background: rgba(0,0,0,0.95); gap: 20px; overflow-y: auto; justify-content: flex-start; padding-top: 40px; }
         .logo-container { text-align: center; animation: flotar 3s ease-in-out infinite; }
         @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .logo-dado { font-size: 8em; filter: drop-shadow(0 0 30px rgba(255,215,0,0.8)); }
@@ -40,6 +40,7 @@
         }
         .btn-jugar { background: linear-gradient(180deg, #FFD700, #B8860B); color: #1a0030; box-shadow: 0 5px 20px rgba(255,215,0,0.5); border: 3px solid #FFD700; }
         .btn-instrucciones { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
+        .btn-creditos { background: rgba(255,255,255,0.15); color: #FFD700; border: 2px solid rgba(255,215,0,0.6); }
         .btn-menu:active { transform: scale(0.95); }
         .btn-volver { padding: 12px 30px; background: #FFD700; color: #000; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1em; margin: 20px 0; }
         #juego { flex-direction: column; justify-content: space-between; padding: 5px; gap: 5px; position: relative; }
@@ -121,6 +122,17 @@
         .btn-pequeno { padding: 8px 16px; font-size: 0.8em; border-radius: 15px; cursor: pointer; font-weight: bold; border: none; }
         .btn-unirse { background: #4CAF50; color: white; }
         .btn-iniciar { background: #FF9800; color: #000; }
+        .creditos-container {
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #FFD700;
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+        }
+        .creditos-container h2 { color: #FFD700; margin: 15px 0; }
+        .creditos-container p { color: rgba(255,255,255,0.8); margin: 10px 0; font-size: 1em; }
     </style>
 </head>
 <body>
@@ -137,6 +149,7 @@
             <button class="btn-menu btn-instrucciones" onclick="mostrarPerfil()">👤 PERFIL</button>
             <button class="btn-menu btn-instrucciones" onclick="mostrarRanking()">🏆 RANKING</button>
             <button class="btn-menu btn-instrucciones" onclick="mostrarInstrucciones()">📖 REGLAS</button>
+            <button class="btn-menu btn-creditos" onclick="mostrarCreditos()">ℹ️ CRÉDITOS</button>
         </div>
     </div>
 
@@ -217,6 +230,19 @@
             <div class="regla"><h3>🎯 Objetivo</h3><p>Sé el primero en quedarte sin fichas. El tablero es <strong>compartido</strong>.</p></div>
             <div class="regla"><h3>🔄 Números 1 al 5</h3><p><strong>Casilla Vacía:</strong> Colocas ficha y sigues tirando.<br><strong>Casilla Ocupada:</strong> Recoges ficha y pierdes turno.</p></div>
             <div class="regla"><h3>💎 Número 6 (Pozo)</h3><p>La ficha va al pozo. <strong>No pierdes el turno</strong>.</p></div>
+        </div>
+        <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
+    </div>
+
+    <!-- ============ CRÉDITOS ============ -->
+    <div id="creditos" class="pantalla">
+        <div class="creditos-container">
+            <!-- Reemplaza la ruta de la imagen con la tuya -->
+            <img src="img/logo.png" alt="Logo Factor 6" style="width: 120px; height: 120px; border-radius: 20px; margin-bottom: 20px;">
+            <h2>Factor 6</h2>
+            <p>Desarrollado por <strong>Richard</strong></p>
+            <p>📧 <a href="mailto:tu-correo@ejemplo.com" style="color: #FFD700;">tu-correo@ejemplo.com</a></p>
+            <p style="font-size: 0.8em; margin-top: 20px; color: rgba(255,255,255,0.5);">Versión 1.0 - 2024</p>
         </div>
         <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
     </div>
