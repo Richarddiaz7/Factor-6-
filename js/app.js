@@ -14,6 +14,7 @@ let unsubscribeSala = null;
 let unsubscribePartida = null;
 let unsubscribeRanking = null;
 let unsubscribeSalas = null;
+let ultimaTiradaTimestamp = 0;  // Para evitar animaciones duplicadas
 
 async function initApp() {
   console.log('🎲 Iniciando Factor 6 Online...');
@@ -29,7 +30,7 @@ function mostrarPantalla(id) {
 function mostrarPortada() {
   if (typeof uiManager !== 'undefined') uiManager.ocultarResultadoFinal();
   juegoActivo = false;
-  soundManager.stopMusic();
+  if (typeof soundManager !== 'undefined') soundManager.stopMusic();
   mostrarPantalla('portada');
 }
 
@@ -57,7 +58,7 @@ async function guardarNombre() {
   if (user && nombre) await AuthManager.actualizarNombre(user.uid, nombre);
 }
 
-// Lobby
+// ========== LOBBY ==========
 function mostrarLobby() {
   mostrarPantalla('lobby');
   document.getElementById('panel-multijugador').style.display = 'none';
@@ -114,7 +115,7 @@ async function salirLobby() {
   mostrarPortada();
 }
 
-// Ranking
+// ========== RANKING ==========
 function mostrarRanking() {
   mostrarPantalla('ranking');
   if (unsubscribeRanking) unsubscribeRanking();
@@ -127,69 +128,110 @@ function mostrarRanking() {
 }
 function salirRanking() { if (unsubscribeRanking) unsubscribeRanking(); mostrarPortada(); }
 
-// Partida desde sala
+// ========== INICIAR PARTIDA DESDE SALA ==========
 async function iniciarPartidaDesdeSala(sala) {
   partidaActualId = sala.id;
-  const jugadores = sala.jugadores.map(j => ({ nombre: j.nombre, emoji: '😎', fichas: 6, esIA: false, uid: j.uid }));
-  if (sala.modo === 'solitario') for (let i=0; i<sala.numBots; i++) jugadores.push({ nombre: `Bot-${i+1}`, emoji: '🤖', fichas: 6, esIA: true, uid: 'bot_'+i });
+  const jugadores = sala.jugadores.map(j => ({
+    nombre: j.nombre,
+    emoji: '😎',
+    fichas: 6,
+    esIA: false,
+    uid: j.uid
+  }));
+
+  // Añadir bots con uid predecible
+  if (sala.modo === 'solitario') {
+    for (let i = 0; i < sala.numBots; i++) {
+      jugadores.push({
+        nombre: `Bot-${i+1}`,
+        emoji: '🤖',
+        fichas: 6,
+        esIA: true,
+        uid: 'bot_' + (jugadores.length)  // uid único: bot_2, bot_3, etc.
+      });
+    }
+  }
+
   const turnoInicial = await realizarSorteoLocal(jugadores);
-  await GameManager.crearPartida(partidaActualId, jugadores, turnoInicial, sala.apuesta||0);
+  await GameManager.crearPartida(partidaActualId, jugadores, turnoInicial, sala.apuesta || 0);
+
   mostrarPantalla('juego');
   uiManager.ocultarResultadoFinal();
-  soundManager.startMusic();
+  if (typeof soundManager !== 'undefined') soundManager.startMusic();
 
   if (unsubscribePartida) unsubscribePartida();
+  ultimaTiradaTimestamp = 0;
+
   unsubscribePartida = GameManager.escucharPartida(partidaActualId, partida => {
+    if (!partida) return;
+
     uiManager.actualizarPanelJugadores(partida.jugadores, partida.turnoActual);
     uiManager.actualizarTablero(partida.casillas, partida.pozo);
+
     const actual = partida.jugadores[partida.turnoActual];
     const esHumano = !actual.esIA && actual.uid === auth.currentUser?.uid;
     uiManager.actualizarIndicadorTurno(actual, esHumano);
     uiManager.habilitarGiro(esHumano && partida.estado === 'jugando');
     uiManager.cambiarColorBoton(esHumano && partida.estado === 'jugando');
-    if (partida.ultimaTirada) {
-      uiManager.animarRodillo(partida.ultimaTirada.numero, () => uiManager.iluminarCasilla(partida.ultimaTirada.numero));
+
+    // Animar solo si hay una nueva tirada
+    if (partida.ultimaTirada && partida.ultimaTirada.timestamp !== ultimaTiradaTimestamp) {
+      ultimaTiradaTimestamp = partida.ultimaTirada.timestamp;
+      uiManager.animarRodillo(partida.ultimaTirada.numero, () => {
+        uiManager.iluminarCasilla(partida.ultimaTirada.numero);
+      });
     }
+
     if (partida.estado === 'terminada') {
       juegoActivo = false;
       const ganador = partida.jugadores[partida.ganador];
       const ganoYo = !ganador.esIA && ganador.uid === auth.currentUser?.uid;
       uiManager.mostrarResultadoFinal(ganador, ganoYo);
-      soundManager.stopMusic();
+      if (typeof soundManager !== 'undefined') soundManager.stopMusic();
       if (unsubscribePartida) unsubscribePartida();
       GameManager.eliminarPartida(partidaActualId);
       partidaActualId = null;
+      return;
     }
+
+    // Turno de bot: usar el uid real del bot
     if (partida.estado === 'jugando' && actual.esIA) {
-      setTimeout(() => { if (partidaActualId === sala.id) turnoIA(partidaActualId, partida.turnoActual); }, 1500);
+      setTimeout(() => {
+        if (partidaActualId === sala.id) turnoIA(partidaActualId, actual.uid);
+      }, 1500);
     }
   });
+
   juegoActivo = true;
 }
 
 async function realizarSorteoLocal(jugadores) {
   let ganador = null, intentos = 0;
   while (!ganador && intentos++ < 20) {
-    const resultados = jugadores.map(() => Math.floor(Math.random()*6)+1);
+    const resultados = jugadores.map(() => Math.floor(Math.random() * 6) + 1);
     const max = Math.max(...resultados);
-    const indices = resultados.reduce((a, n, i) => { if (n===max) a.push(i); return a; }, []);
+    const indices = resultados.reduce((a, n, i) => { if (n === max) a.push(i); return a; }, []);
     if (indices.length === 1) ganador = indices[0];
     await new Promise(r => setTimeout(r, 300));
   }
-  return ganador === null ? Math.floor(Math.random()*jugadores.length) : ganador;
+  return ganador === null ? Math.floor(Math.random() * jugadores.length) : ganador;
 }
 
 async function tirarPalanca() {
   if (!juegoActivo || !partidaActualId) return;
   const user = auth.currentUser;
   if (!user) return;
+
   uiManager.habilitarGiro(false);
-  const numero = Math.floor(Math.random()*6)+1;
+  uiManager.cambiarColorBoton(false);
+
+  const numero = Math.floor(Math.random() * 6) + 1;
   try {
     await GameManager.tirarDado(partidaActualId, user.uid, numero);
   } catch (e) {
-    soundManager.playError();
+    if (typeof soundManager !== 'undefined') soundManager.playError();
     uiManager.mostrarMensajeTemporal(e.message);
+    // Restaurar botón si sigue siendo tu turno
     const doc = await db.collection('partidas').doc(partidaActualId).get();
     if (doc.exists && doc.data().estado === 'jugando') {
       const actual = doc.data().jugadores[doc.data().turnoActual];
@@ -200,23 +242,35 @@ async function tirarPalanca() {
   }
 }
 
-async function turnoIA(partidaId, turnoIdx) {
-  const numero = Math.floor(Math.random()*6)+1;
-  try { await GameManager.tirarDado(partidaId, 'bot_'+turnoIdx, numero); } catch (e) {}
+async function turnoIA(partidaId, botUid) {
+  const numero = Math.floor(Math.random() * 6) + 1;
+  try {
+    await GameManager.tirarDado(partidaId, botUid, numero);
+  } catch (e) {
+    console.error('Error en turno IA:', e);
+  }
 }
 
-// Sonido controles
+// Controles de audio
 function toggleMusica() {
+  if (typeof soundManager === 'undefined') return;
   const enabled = soundManager.toggleMusic();
-  document.getElementById('btnMusica').textContent = enabled ? '🎵' : '🎵🚫';
+  const btn = document.getElementById('btnMusica');
+  if (btn) btn.textContent = enabled ? '🎵' : '🎵🚫';
 }
+
 function toggleSonido() {
+  if (typeof soundManager === 'undefined') return;
   const enabled = soundManager.toggleSfx();
-  document.getElementById('btnSonido').textContent = enabled ? '🔊' : '🔇';
+  const btn = document.getElementById('btnSonido');
+  if (btn) btn.textContent = enabled ? '🔊' : '🔇';
 }
 
 function configurarListeners() {
-  document.getElementById('boton')?.addEventListener('click', e => { e.preventDefault(); tirarPalanca(); });
+  document.getElementById('boton')?.addEventListener('click', e => {
+    e.preventDefault();
+    tirarPalanca();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
