@@ -19,7 +19,6 @@ class UIManager {
   actualizarPanelJugadores(jugadores, turnoActual) {
     const panel = this.elementos.panelJugadores;
     if (!panel) return;
-    
     panel.innerHTML = '';
     jugadores.forEach((jugador, index) => {
       const card = document.createElement('div');
@@ -34,7 +33,6 @@ class UIManager {
   }
 
   actualizarTablero(casillas, pozo) {
-    // Actualizar casillas 1-5
     for (let i = 1; i <= 5; i++) {
       const casilla = document.getElementById(`casilla-${i}`);
       if (casilla) {
@@ -45,8 +43,6 @@ class UIManager {
         }
       }
     }
-
-    // Actualizar pozo
     if (this.elementos.contadorPozo) {
       this.elementos.contadorPozo.textContent = pozo || 0;
       if (pozo > 0) {
@@ -71,6 +67,15 @@ class UIManager {
     }
   }
 
+  cambiarColorBoton(esTurno) {
+    if (this.elementos.botonGirar) {
+      this.elementos.botonGirar.style.background = esTurno 
+        ? 'linear-gradient(180deg, #4CAF50, #2E7D32)' 
+        : 'linear-gradient(180deg, #888, #555)';
+      this.elementos.botonGirar.style.color = esTurno ? 'white' : '#1a0030';
+    }
+  }
+
   mostrarResultadoTirada(numero) {
     if (this.elementos.resultado) {
       this.elementos.resultado.textContent = `🎯 ${numero}`;
@@ -87,18 +92,23 @@ class UIManager {
     }
   }
 
-  mostrarResultadoFinal(ganador, esHumano) {
+  mostrarResultadoFinal(ganador, esHumanoGanador) {
     const mensaje = this.elementos.mensajeVictoria;
     if (mensaje) {
       mensaje.style.display = 'block';
       if (this.elementos.mensajeTitulo) {
-        this.elementos.mensajeTitulo.textContent = esHumano ? '🎉 ¡VICTORIA!' : '😢 ¡DERROTA!';
+        this.elementos.mensajeTitulo.textContent = esHumanoGanador ? '🎉 ¡VICTORIA!' : '😢 ¡DERROTA!';
       }
       if (this.elementos.mensajeTexto) {
-        this.elementos.mensajeTexto.textContent = esHumano 
-          ? '¡Has ganado la partida!' 
-          : `${ganador.nombre} ha ganado.`;
+        this.elementos.mensajeTexto.textContent = esHumanoGanador 
+          ? `¡${ganador.nombre} ha ganado la partida!` 
+          : `${ganador.nombre} ganó. ¡Suerte la próxima!`;
       }
+    }
+    if (esHumanoGanador) {
+      soundManager.playVictory();
+    } else {
+      soundManager.playDefeat();
     }
   }
 
@@ -106,6 +116,43 @@ class UIManager {
     if (this.elementos.mensajeVictoria) {
       this.elementos.mensajeVictoria.style.display = 'none';
     }
+  }
+
+  animarRodillo(numeroFinal, callback) {
+    const rodillo = document.getElementById('numeros');
+    if (!rodillo) {
+      if (callback) callback();
+      return;
+    }
+    let frames = 0;
+    const total = 30;
+    const intervalo = setInterval(() => {
+      const numAleatorio = Math.floor(Math.random() * 6) + 1;
+      rodillo.innerHTML = `<div class="numero-rodillo">${numAleatorio}</div>`;
+      soundManager.playTick();
+      frames++;
+      if (frames >= total) {
+        clearInterval(intervalo);
+        rodillo.innerHTML = `<div class="numero-rodillo">${numeroFinal}</div>`;
+        if (callback) callback();
+      }
+    }, 50);
+  }
+
+  mostrarMensajeTemporal(mensaje) {
+    const toast = document.createElement('div');
+    toast.textContent = mensaje;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '80px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'rgba(0,0,0,0.8)';
+    toast.style.color = '#FFD700';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '20px';
+    toast.style.zIndex = '1000';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
   }
 }
 
