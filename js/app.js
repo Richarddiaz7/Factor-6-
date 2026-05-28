@@ -35,7 +35,9 @@ function mostrarPortada() {
 }
 
 function mostrarInstrucciones() { mostrarPantalla('instrucciones'); }
-
+function mostrarCreditos() {
+  mostrarPantalla('creditos');
+}
 async function mostrarPerfil() {
   mostrarPantalla('perfil');
   const user = auth.currentUser;
