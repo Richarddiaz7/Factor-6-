@@ -162,4 +162,13 @@ class LobbyManager {
         console.error('Error escuchando sala:', error);
       });
   }
+
+  static async eliminarSala(salaId) {
+    try {
+      await db.collection('salas').doc(salaId).delete();
+      console.log('🗑️ Sala eliminada:', salaId);
+    } catch (error) {
+      console.error('Error al eliminar sala:', error);
+    }
+  }
 }
