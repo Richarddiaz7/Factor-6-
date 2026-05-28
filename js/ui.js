@@ -71,7 +71,7 @@ class UIManager {
     if (this.elementos.botonGirar) {
       this.elementos.botonGirar.style.background = esTurno 
         ? 'linear-gradient(180deg, #4CAF50, #2E7D32)' 
-        : 'linear-gradient(180deg, #888, #555)';
+        : 'linear-gradient(180deg, #FFD700, #B8860B)';
       this.elementos.botonGirar.style.color = esTurno ? 'white' : '#1a0030';
     }
   }
@@ -106,9 +106,9 @@ class UIManager {
       }
     }
     if (esHumanoGanador) {
-      soundManager.playVictory();
+      if (typeof soundManager !== 'undefined') soundManager.playVictory();
     } else {
-      soundManager.playDefeat();
+      if (typeof soundManager !== 'undefined') soundManager.playDefeat();
     }
   }
 
@@ -129,7 +129,7 @@ class UIManager {
     const intervalo = setInterval(() => {
       const numAleatorio = Math.floor(Math.random() * 6) + 1;
       rodillo.innerHTML = `<div class="numero-rodillo">${numAleatorio}</div>`;
-      soundManager.playTick();
+      if (typeof soundManager !== 'undefined') soundManager.playTick();
       frames++;
       if (frames >= total) {
         clearInterval(intervalo);
