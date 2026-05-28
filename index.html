@@ -6,361 +6,90 @@
     <meta name="telegram-web-app" content="yes">
     <title>Factor 6 - Online</title>
     
-    <!-- Telegram Web Apps SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Firebase SDKs (compatibilidad) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
             margin: 0; 
             background: linear-gradient(135deg, #1a0033 0%, #2d004d 30%, #4a0072 70%, #1a0033 100%);
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh;
-            height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100vh; height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-            color: white;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
+            color: white; overflow: hidden; user-select: none; -webkit-user-select: none;
         }
 
         .pantalla {
-            display: none;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: absolute;
-            top: 0;
-            left: 0;
+            display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; 
+            justify-content: center; padding: 20px; position: absolute; top: 0; left: 0;
         }
+        .pantalla.activa { display: flex; }
 
-        .pantalla.activa {
-            display: flex;
-        }
+        #portada { background: linear-gradient(135deg, #1a0033 0%, #2d004d 40%, #4a0072 100%); gap: 30px; }
+        #perfil, #lobby, #ranking, #instrucciones { background: rgba(0,0,0,0.95); gap: 20px; overflow-y: auto; justify-content: flex-start; padding-top: 40px; }
 
-        #portada {
-            background: linear-gradient(135deg, #1a0033 0%, #2d004d 40%, #4a0072 100%);
-            gap: 30px;
-        }
+        .logo-container { text-align: center; animation: flotar 3s ease-in-out infinite; }
+        @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .logo-dado { font-size: 8em; filter: drop-shadow(0 0 30px rgba(255,215,0,0.8)); }
+        .titulo-juego { font-size: 2.5em; font-weight: 900; color: #FFD700; text-shadow: 0 0 20px rgba(255,215,0,0.5); letter-spacing: 5px; margin-top: 10px; }
+        .subtitulo { font-size: 1em; color: rgba(255,255,255,0.7); margin-top: 5px; }
 
-        .logo-container {
-            text-align: center;
-            animation: flotar 3s ease-in-out infinite;
-        }
-
-        @keyframes flotar {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .logo-dado {
-            font-size: 8em;
-            filter: drop-shadow(0 0 30px rgba(255,215,0,0.8));
-        }
-
-        .titulo-juego {
-            font-size: 2.5em;
-            font-weight: 900;
-            color: #FFD700;
-            text-shadow: 0 0 20px rgba(255,215,0,0.5);
-            letter-spacing: 5px;
-            margin-top: 10px;
-        }
-
-        .subtitulo {
-            font-size: 1em;
-            color: rgba(255,255,255,0.7);
-            margin-top: 5px;
-        }
-
-        .menu-botones {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 80%;
-            max-width: 300px;
-        }
-
+        .menu-botones { display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 300px; }
         .btn-menu {
-            padding: 18px 30px;
-            font-size: 1.2em;
-            font-weight: bold;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            padding: 18px 30px; font-size: 1.2em; font-weight: bold; border: none; border-radius: 30px;
+            cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 2px;
         }
+        .btn-jugar { background: linear-gradient(180deg, #FFD700, #B8860B); color: #1a0030; box-shadow: 0 5px 20px rgba(255,215,0,0.5); border: 3px solid #FFD700; }
+        .btn-instrucciones { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
+        .btn-menu:active { transform: scale(0.95); }
 
-        .btn-jugar {
-            background: linear-gradient(180deg, #FFD700, #B8860B);
-            color: #1a0030;
-            box-shadow: 0 5px 20px rgba(255,215,0,0.5);
-            border: 3px solid #FFD700;
-        }
+        .btn-volver { padding: 12px 30px; background: #FFD700; color: #000; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1em; margin: 20px 0; }
 
-        .btn-instrucciones {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-menu:active {
-            transform: scale(0.95);
-        }
-
-        #instrucciones {
-            background: rgba(0,0,0,0.95);
-            gap: 20px;
-            overflow-y: auto;
-            justify-content: flex-start;
-            padding-top: 40px;
-        }
-
-        .instrucciones-container {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 25px;
-            border: 2px solid rgba(255,215,0,0.3);
-            width: 90%;
-            max-width: 500px;
-            backdrop-filter: blur(10px);
-        }
-
-        .instrucciones-container h2 {
-            color: #FFD700;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-
-        .regla {
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 4px solid #FFD700;
-        }
-
-        .regla h3 {
-            color: #FFD700;
-            margin-bottom: 5px;
-        }
-
-        .regla p {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        .btn-volver {
-            padding: 12px 30px;
-            background: #FFD700;
-            color: #000;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1em;
-            margin: 20px 0;
-        }
-
-        #juego {
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 5px;
-            gap: 5px;
-        }
-
-        .panel-jugadores {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
+        #juego { flex-direction: column; justify-content: space-between; padding: 5px; gap: 5px; }
+        .panel-jugadores { display: flex; justify-content: space-around; width: 100%; gap: 10px; flex-wrap: wrap; }
         .jugador-card {
-            background: rgba(0,0,0,0.5);
-            border-radius: 15px;
-            padding: 10px;
-            text-align: center;
-            border: 2px solid rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
-            min-width: 80px;
-            flex: 1;
-            max-width: 120px;
+            background: rgba(0,0,0,0.5); border-radius: 15px; padding: 10px; text-align: center;
+            border: 2px solid rgba(255,255,255,0.2); transition: all 0.3s ease; min-width: 80px; flex: 1; max-width: 120px;
         }
+        .jugador-card.activo { border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.5); animation: brillo 0.5s ease-in-out infinite alternate; }
+        .jugador-card.ia { border-color: #BA68C8; }
+        .jugador-card.ia.activo { border-color: #BA68C8; box-shadow: 0 0 20px rgba(156,39,176,0.5); animation: brilloIA 0.5s ease-in-out infinite alternate; }
+        @keyframes brilloIA { 0% { box-shadow: 0 0 10px rgba(156,39,176,0.5); } 100% { box-shadow: 0 0 30px rgba(156,39,176,0.8); } }
+        .jugador-emoji { font-size: 2em; }
+        .jugador-nombre { font-weight: bold; color: #FFD700; font-size: 0.8em; margin: 5px 0; }
+        .jugador-fichas { background: rgba(255,215,0,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.9em; color: #FFD700; font-weight: bold; }
+        .ia .jugador-nombre { color: #BA68C8; }
+        .ia .jugador-fichas { background: rgba(156,39,176,0.2); color: #BA68C8; }
 
-        .jugador-card.activo {
-            border-color: #FFD700;
-            box-shadow: 0 0 20px rgba(255,215,0,0.5);
-            animation: brillo 0.5s ease-in-out infinite alternate;
-        }
-
-        .jugador-card.ia {
-            border-color: #BA68C8;
-        }
-
-        .jugador-card.ia.activo {
-            border-color: #BA68C8;
-            box-shadow: 0 0 20px rgba(156,39,176,0.5);
-            animation: brilloIA 0.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes brilloIA {
-            0% { box-shadow: 0 0 10px rgba(156,39,176,0.5); }
-            100% { box-shadow: 0 0 30px rgba(156,39,176,0.8); }
-        }
-
-        .jugador-emoji {
-            font-size: 2em;
-        }
-
-        .jugador-nombre {
-            font-weight: bold;
-            color: #FFD700;
-            font-size: 0.8em;
-            margin: 5px 0;
-        }
-
-        .jugador-fichas {
-            background: rgba(255,215,0,0.2);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            color: #FFD700;
-            font-weight: bold;
-        }
-
-        .ia .jugador-nombre {
-            color: #BA68C8;
-        }
-
-        .ia .jugador-fichas {
-            background: rgba(156,39,176,0.2);
-            color: #BA68C8;
-        }
-
-        #tablero-container {
-            width: 95%;
-            max-width: 500px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 20px;
-            padding: 10px;
-            border: 3px solid #FFD700;
-            box-shadow: 0 0 30px rgba(255,215,0,0.3);
-        }
-
-        .fila-superior {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
+        #tablero-container { width: 95%; max-width: 500px; background: rgba(0,0,0,0.7); border-radius: 20px; padding: 10px; border: 3px solid #FFD700; box-shadow: 0 0 30px rgba(255,215,0,0.3); }
+        .fila-superior { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
         .cuadrado {
-            width: 60px;
-            height: 80px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.5em;
-            border-radius: 12px;
-            color: white;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255,255,255,0.3);
-            position: relative;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-            gap: 3px;
+            width: 60px; height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 1.5em; border-radius: 12px; color: white; transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.3); position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); gap: 3px;
         }
-
-        .cuadrado .numero {
-            font-size: 0.6em;
-            font-weight: bold;
-        }
-
+        .cuadrado .numero { font-size: 0.6em; font-weight: bold; }
         .cuadrado .ficha {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #FFD700, #B8860B);
-            border: 2px solid #FFA500;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
-            display: none;
-            animation: colocarFicha 0.3s ease-out;
+            width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #FFD700, #B8860B);
+            border: 2px solid #FFA500; box-shadow: 0 3px 8px rgba(0,0,0,0.5); display: none; animation: colocarFicha 0.3s ease-out;
         }
+        @keyframes colocarFicha { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .cuadrado.ocupado .ficha { display: block; }
+        .cuadrado.ocupado { border-color: #FFD700 !important; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
 
-        @keyframes colocarFicha {
-            from { transform: scale(0); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .cuadrado.ocupado .ficha {
-            display: block;
-        }
-
-        .cuadrado.ocupado {
-            border-color: #FFD700 !important;
-            box-shadow: 0 0 10px rgba(255,215,0,0.3);
-        }
-
-        #c6-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 8px;
-        }
-
+        #c6-container { display: flex; justify-content: center; margin-top: 8px; }
         #c6 {
-            width: 180px;
-            height: 75px;
-            background: linear-gradient(135deg, #B8860B, #FFD700);
-            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.5em;
-            color: #000;
-            transition: all 0.3s ease;
-            border: 2px solid #FFD700;
-            position: relative;
+            width: 180px; height: 75px; background: linear-gradient(135deg, #B8860B, #FFD700);
+            clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-weight: bold; font-size: 1.5em; color: #000;
+            transition: all 0.3s ease; border: 2px solid #FFD700; position: relative;
         }
-
-        #c6 .contador-pozo {
-            font-size: 0.6em;
-            background: rgba(0,0,0,0.3);
-            color: white;
-            padding: 2px 10px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        #c6 .contador-pozo.visible {
-            display: block;
-        }
+        #c6 .contador-pozo { font-size: 0.6em; background: rgba(0,0,0,0.3); color: white; padding: 2px 10px; border-radius: 10px; display: none; }
+        #c6 .contador-pozo.visible { display: block; }
 
         .c1 { background: linear-gradient(135deg, #FF5733, #C70039); }
         .c2 { background: linear-gradient(135deg, #FFC300, #FF8C00); }
@@ -369,172 +98,45 @@
         .c5 { background: linear-gradient(135deg, #9C27B0, #6A1B9A); }
 
         .slot-machine {
-            background: linear-gradient(180deg, #2a0040 0%, #1a0030 50%, #0d0020 100%);
-            border: 3px solid #FFD700;
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0 0 20px rgba(255,215,0,0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            width: 95%;
-            max-width: 350px;
+            background: linear-gradient(180deg, #2a0040 0%, #1a0030 50%, #0d0020 100%); border: 3px solid #FFD700;
+            border-radius: 15px; padding: 10px; box-shadow: 0 0 20px rgba(255,215,0,0.5);
+            display: flex; flex-direction: column; align-items: center; gap: 8px; width: 95%; max-width: 350px;
         }
+        .slot-ventana { background: #000; border: 2px solid #B8860B; border-radius: 10px; padding: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); overflow: hidden; position: relative; width: 100px; height: 70px; display: flex; justify-content: center; align-items: center; }
+        .rodillo-unico { width: 70px; height: 70px; background: #1a1a1a; border: 2px solid #333; border-radius: 8px; overflow: hidden; position: relative; }
+        .numeros-rodillo { position: absolute; width: 100%; transition: transform 0.1s linear; }
+        .numero-rodillo { width: 100%; height: 70px; display: flex; justify-content: center; align-items: center; font-size: 2.5em; font-weight: 900; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.8); background: linear-gradient(180deg, #2a2a2a, #1a1a1a); border-bottom: 1px solid #333; }
+        .marcador-central { position: absolute; top: 50%; left: 0; right: 0; height: 70px; border-top: 2px solid #FFD700; border-bottom: 2px solid #FFD700; transform: translateY(-50%); z-index: 3; pointer-events: none; }
 
-        .slot-ventana {
-            background: #000;
-            border: 2px solid #B8860B;
-            border-radius: 10px;
-            padding: 8px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-            overflow: hidden;
-            position: relative;
-            width: 100px;
-            height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .rodillo-unico {
-            width: 70px;
-            height: 70px;
-            background: #1a1a1a;
-            border: 2px solid #333;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .numeros-rodillo {
-            position: absolute;
-            width: 100%;
-            transition: transform 0.1s linear;
-        }
-
-        .numero-rodillo {
-            width: 100%;
-            height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5em;
-            font-weight: 900;
-            color: #FFD700;
-            text-shadow: 0 0 10px rgba(255,215,0,0.8);
-            background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
-            border-bottom: 1px solid #333;
-        }
-
-        .marcador-central {
-            position: absolute;
-            top: 50%; left: 0; right: 0;
-            height: 70px;
-            border-top: 2px solid #FFD700;
-            border-bottom: 2px solid #FFD700;
-            transform: translateY(-50%);
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        .btn-lanzar { 
-            padding: 10px 25px; 
-            font-size: 0.9em; 
-            background: linear-gradient(180deg, #FFD700, #B8860B);
-            border: 2px solid #FFD700;
-            border-radius: 20px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            color: #1a0030; 
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 3px 10px rgba(255,215,0,0.5);
-        }
-        
+        .btn-lanzar { padding: 10px 25px; font-size: 0.9em; background: linear-gradient(180deg, #FFD700, #B8860B); border: 2px solid #FFD700; border-radius: 20px; cursor: pointer; font-weight: bold; color: #1a0030; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 3px 10px rgba(255,215,0,0.5); }
         .btn-lanzar:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .iluminado { 
-            border-color: #FFD700 !important; 
-            box-shadow: 0 0 20px #FFD700 !important; 
-            animation: brilloCasilla 0.5s ease-in-out infinite alternate;
-        }
+        .iluminado { border-color: #FFD700 !important; box-shadow: 0 0 20px #FFD700 !important; animation: brilloCasilla 0.5s ease-in-out infinite alternate; }
+        @keyframes brilloCasilla { 0% { box-shadow: 0 0 10px #FFD700; } 100% { box-shadow: 0 0 30px #FFD700, 0 0 50px rgba(255,215,0,0.5); } }
+        .resultado-numero { font-size: 1.5em; color: #FFD700; text-shadow: 0 0 15px #FFD700; font-weight: bold; display: none; }
 
-        @keyframes brilloCasilla {
-            0% { box-shadow: 0 0 10px #FFD700; }
-            100% { box-shadow: 0 0 30px #FFD700, 0 0 50px rgba(255,215,0,0.5); }
-        }
+        .mensaje-victoria { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); border: 3px solid #FFD700; border-radius: 20px; padding: 25px; text-align: center; z-index: 100; display: none; animation: aparecer 0.5s ease-out; }
+        @keyframes aparecer { from { transform: translate(-50%, -50%) scale(0); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+        .mensaje-victoria h2 { color: #FFD700; font-size: 1.8em; margin-bottom: 10px; }
+        .btn-reiniciar { padding: 10px 25px; background: #FFD700; color: #000; border: none; border-radius: 20px; font-size: 1em; font-weight: bold; cursor: pointer; margin: 5px; }
 
-        .resultado-numero {
-            font-size: 1.5em;
-            color: #FFD700;
-            text-shadow: 0 0 15px #FFD700;
-            font-weight: bold;
-            display: none;
-        }
+        .turno-indicador { text-align: center; color: #FFD700; font-weight: bold; font-size: 0.9em; padding: 5px; }
+        .sorteo-info { text-align: center; color: #FFD700; font-size: 1em; margin: 5px 0; animation: flotar 2s ease-in-out infinite; }
 
-        @keyframes vibracion {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-2px); }
-            75% { transform: translateX(2px); }
-        }
+        .instrucciones-container { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; border: 2px solid rgba(255,215,0,0.3); width: 90%; max-width: 500px; backdrop-filter: blur(10px); }
+        .instrucciones-container h2 { color: #FFD700; text-align: center; margin-bottom: 20px; font-size: 1.8em; }
+        .regla { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #FFD700; }
+        .regla h3 { color: #FFD700; margin-bottom: 5px; }
+        .regla p { color: rgba(255,255,255,0.8); font-size: 0.9em; line-height: 1.4; }
 
-        .vibrando { animation: vibracion 0.1s infinite; }
+        .perfil-info { background:rgba(0,0,0,0.5); padding:20px; border-radius:15px; width:90%; max-width:350px; }
+        .perfil-info p { margin: 10px 0; font-size: 1.1em; }
+        .input-nombre { width:100%; padding:10px; margin-top:15px; border-radius:10px; border:2px solid #FFD700; background:rgba(0,0,0,0.7); color:white; font-size:1em; }
 
-        .mensaje-victoria {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            border: 3px solid #FFD700;
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            z-index: 100;
-            display: none;
-            animation: aparecer 0.5s ease-out;
-        }
+        .sala-card { background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,215,0,0.3); cursor:pointer; transition: all 0.2s; }
+        .sala-card:hover { border-color: #FFD700; background: rgba(255,215,0,0.1); }
 
-        @keyframes aparecer {
-            from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-
-        .mensaje-victoria h2 {
-            color: #FFD700;
-            font-size: 1.8em;
-            margin-bottom: 10px;
-        }
-
-        .btn-reiniciar {
-            padding: 10px 25px;
-            background: #FFD700;
-            color: #000;
-            border: none;
-            border-radius: 20px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        .turno-indicador {
-            text-align: center;
-            color: #FFD700;
-            font-weight: bold;
-            font-size: 0.9em;
-            padding: 5px;
-        }
-
-        .sorteo-info {
-            text-align: center;
-            color: #FFD700;
-            font-size: 1em;
-            margin: 5px 0;
-            animation: flotar 2s ease-in-out infinite;
-        }
+        .ranking-item { background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,215,0,0.3); }
     </style>
 </head>
 <body>
@@ -548,31 +150,70 @@
         </div>
 
         <div class="menu-botones">
-            <button class="btn-menu btn-jugar" onclick="iniciarJuegoOnline()">🎰 JUGAR</button>
-            <button class="btn-menu btn-instrucciones" onclick="mostrarInstrucciones()">📖 INSTRUCCIONES</button>
+            <button class="btn-menu btn-jugar" onclick="mostrarLobby()">🎰 JUGAR</button>
+            <button class="btn-menu btn-instrucciones" onclick="mostrarPerfil()">👤 PERFIL</button>
+            <button class="btn-menu btn-instrucciones" onclick="mostrarRanking()">🏆 RANKING</button>
+            <button class="btn-menu btn-instrucciones" onclick="mostrarInstrucciones()">📖 REGLAS</button>
         </div>
+    </div>
+
+    <!-- ============ PERFIL ============ -->
+    <div id="perfil" class="pantalla">
+        <h2 style="color:#FFD700; margin-bottom:20px;">👤 MI PERFIL</h2>
+        <div class="perfil-info">
+            <p>💰 <strong>Monedas:</strong> <span id="perfil-monedas">0</span></p>
+            <p>🏆 <strong>Puntuación:</strong> <span id="perfil-puntuacion">0</span></p>
+            <p>🎮 <strong>Partidas:</strong> <span id="perfil-partidas">0</span></p>
+            <p>✅ <strong>Ganadas:</strong> <span id="perfil-ganadas">0</span></p>
+            <input type="text" id="input-nombre" placeholder="Tu nombre o apodo" class="input-nombre">
+            <button onclick="guardarNombre()" style="margin-top:10px; padding:10px 20px; background:#FFD700; color:#000; border:none; border-radius:10px; font-weight:bold; cursor:pointer; width:100%;">💾 Guardar nombre</button>
+        </div>
+        <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
+    </div>
+
+    <!-- ============ LOBBY ============ -->
+    <div id="lobby" class="pantalla">
+        <h2 style="color:#FFD700; margin-bottom:15px;">🎮 LOBBY</h2>
+        
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:15px;">
+            <button onclick="crearSala('solitario', 1)" class="btn-lanzar">🤖 Solitario (1 bot)</button>
+            <button onclick="crearSala('solitario', 2)" class="btn-lanzar">🤖🤖 vs 2 bots</button>
+            <button onclick="crearSala('multijugador', 0)" class="btn-lanzar">👥 Multijugador</button>
+        </div>
+        
+        <div style="margin-bottom:15px; text-align:center;">
+            <label style="color:#FFD700;">💰 Apuesta:</label>
+            <select id="apuesta-select" style="padding:8px; border-radius:10px; background:rgba(0,0,0,0.7); color:white; border:2px solid #FFD700; margin-left:10px;">
+                <option value="0">Sin apuesta</option>
+                <option value="10">10 monedas</option>
+                <option value="50">50 monedas</option>
+                <option value="100">100 monedas</option>
+            </select>
+        </div>
+        
+        <div id="salas-disponibles" style="width:90%; max-width:400px; overflow-y:auto; max-height:300px;">
+            <p style="color:rgba(255,255,255,0.5); text-align:center;">Cargando salas...</p>
+        </div>
+        
+        <button class="btn-volver" onclick="salirLobby()">⬅ VOLVER</button>
+    </div>
+
+    <!-- ============ RANKING ============ -->
+    <div id="ranking" class="pantalla">
+        <h2 style="color:#FFD700; margin-bottom:15px;">🏆 RANKING</h2>
+        <div id="ranking-lista" style="width:90%; max-width:400px; overflow-y:auto; max-height:400px;">
+            <p style="color:rgba(255,255,255,0.5); text-align:center;">Cargando ranking...</p>
+        </div>
+        <button class="btn-volver" onclick="salirRanking()">⬅ VOLVER</button>
     </div>
 
     <!-- ============ INSTRUCCIONES ============ -->
     <div id="instrucciones" class="pantalla">
         <div class="instrucciones-container">
             <h2>📖 REGLAS DEL JUEGO</h2>
-            
-            <div class="regla">
-                <h3>🎯 Objetivo</h3>
-                <p>Sé el primero en quedarte sin fichas. El tablero es <strong>compartido</strong>.</p>
-            </div>
-
-            <div class="regla">
-                <h3>🔄 Números 1 al 5</h3>
-                <p><strong>Casilla Vacía:</strong> Colocas ficha y sigues tirando.<br>
-                <strong>Casilla Ocupada:</strong> Recoges ficha y pierdes turno.</p>
-            </div>
-
-            <div class="regla">
-                <h3>💎 Número 6 (Pozo)</h3>
-                <p>La ficha va al pozo. <strong>No pierdes el turno</strong>.</p>
-            </div>
+            <div class="regla"><h3>🎯 Objetivo</h3><p>Sé el primero en quedarte sin fichas. El tablero es <strong>compartido</strong>.</p></div>
+            <div class="regla"><h3>🔄 Números 1 al 5</h3><p><strong>Casilla Vacía:</strong> Colocas ficha y sigues tirando.<br><strong>Casilla Ocupada:</strong> Recoges ficha y pierdes turno.</p></div>
+            <div class="regla"><h3>💎 Número 6 (Pozo)</h3><p>La ficha va al pozo. <strong>No pierdes el turno</strong>.</p></div>
         </div>
         <button class="btn-volver" onclick="mostrarPortada()">⬅ VOLVER</button>
     </div>
@@ -585,41 +226,21 @@
         <div id="tablero-container">
             <div class="turno-indicador" id="turno-indicador">🎮 Tu turno</div>
             <div class="fila-superior">
-                <div class="cuadrado c1" id="casilla-1">
-                    <span class="numero">1</span>
-                    <div class="ficha"><span class="dueño-emoji"></span></div>
-                </div>
-                <div class="cuadrado c2" id="casilla-2">
-                    <span class="numero">2</span>
-                    <div class="ficha"><span class="dueño-emoji"></span></div>
-                </div>
-                <div class="cuadrado c3" id="casilla-3">
-                    <span class="numero">3</span>
-                    <div class="ficha"><span class="dueño-emoji"></span></div>
-                </div>
-                <div class="cuadrado c4" id="casilla-4">
-                    <span class="numero">4</span>
-                    <div class="ficha"><span class="dueño-emoji"></span></div>
-                </div>
-                <div class="cuadrado c5" id="casilla-5">
-                    <span class="numero">5</span>
-                    <div class="ficha"><span class="dueño-emoji"></span></div>
-                </div>
+                <div class="cuadrado c1" id="casilla-1"><span class="numero">1</span><div class="ficha"></div></div>
+                <div class="cuadrado c2" id="casilla-2"><span class="numero">2</span><div class="ficha"></div></div>
+                <div class="cuadrado c3" id="casilla-3"><span class="numero">3</span><div class="ficha"></div></div>
+                <div class="cuadrado c4" id="casilla-4"><span class="numero">4</span><div class="ficha"></div></div>
+                <div class="cuadrado c5" id="casilla-5"><span class="numero">5</span><div class="ficha"></div></div>
             </div>
             <div id="c6-container">
-                <div id="c6">
-                    <span>6 - POZO</span>
-                    <span class="contador-pozo" id="contador-pozo">0</span>
-                </div>
+                <div id="c6"><span>6 - POZO</span><span class="contador-pozo" id="contador-pozo">0</span></div>
             </div>
         </div>
 
         <div class="slot-machine">
             <div class="slot-ventana">
                 <div class="marcador-central"></div>
-                <div class="rodillo-unico" id="rodillo">
-                    <div class="numeros-rodillo" id="numeros"></div>
-                </div>
+                <div class="rodillo-unico" id="rodillo"><div class="numeros-rodillo" id="numeros"></div></div>
             </div>
             <div class="resultado-numero" id="resultado"></div>
             <button class="btn-lanzar" id="boton">🎰 GIRAR 🎰</button>
@@ -639,6 +260,8 @@
     <script src="js/auth.js"></script>
     <script src="js/game.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/lobby.js"></script>
+    <script src="js/ranking.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
