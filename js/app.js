@@ -10,7 +10,6 @@ if (tg) {
 // Estado global
 let currentGame = null;
 let juegoActivo = false;
-let intervaloActual = null;
 let salaActualId = null;
 let unsubscribeSala = null;
 let unsubscribeRanking = null;
@@ -73,67 +72,110 @@ async function guardarNombre() {
 }
 
 // ========================================
-// LOBBY
+// LOBBY Y SALAS
 // ========================================
 
-async function mostrarLobby() {
+function mostrarLobby() {
   mostrarPantalla('lobby');
   
   if (unsubscribeSalas) unsubscribeSalas();
-  unsubscribeSalas = LobbyManager.escucharSalas((salas) => {
+  unsubscribeSalas = LobbyManager.escucharSalas(salas => {
     const contenedor = document.getElementById('salas-disponibles');
     if (!contenedor) return;
-    
+
     if (salas.length === 0) {
       contenedor.innerHTML = '<p style="color:rgba(255,255,255,0.5); text-align:center;">No hay salas disponibles. ¡Crea una!</p>';
       return;
     }
-    
-    contenedor.innerHTML = salas.map(sala => `
-      <div class="sala-card" onclick="unirseASala('${sala.id}')">
-        <strong>${sala.creadorNombre || 'Anónimo'}</strong> - ${sala.modo === 'solitario' ? '🤖 Solitario' : '👥 Multijugador'}
-        <br>👥 ${sala.jugadores.length}/${sala.maxJugadores} jugadores
-        ${sala.apuesta > 0 ? ` | 💰 ${sala.apuesta} monedas` : ' | 🆓 Sin apuesta'}
-      </div>
-    `).join('');
+
+    contenedor.innerHTML = salas.map(sala => {
+      const esCreador = auth.currentUser && sala.creador === auth.currentUser.uid;
+      const botones = [];
+      
+      // Botón unirse (si no es el creador y no está ya en la sala)
+      if (!esCreador && !sala.jugadores.some(j => j.uid === auth.currentUser?.uid)) {
+        botones.push(`<button class="btn-pequeno btn-unirse" onclick="event.stopPropagation(); unirseASala('${sala.id}')">Unirse</button>`);
+      }
+      // Botón iniciar (solo creador, mínimo 2 jugadores)
+      if (esCreador && sala.jugadores.length >= 2) {
+        botones.push(`<button class="btn-pequeno btn-iniciar" onclick="event.stopPropagation(); iniciarPartida('${sala.id}')">Iniciar</button>`);
+      }
+
+      return `
+        <div class="sala-card">
+          <div>
+            <strong>${sala.creadorNombre || 'Anónimo'}</strong>
+            ${sala.modo === 'solitario' ? '🤖' : '👥'}
+            <br><small>${sala.jugadores.length}/${sala.maxJugadores} jugadores</small>
+            ${sala.apuesta > 0 ? ` | 💰${sala.apuesta}` : ''}
+          </div>
+          <div style="display:flex; gap:5px;">
+            ${botones.join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
   });
 }
 
+function mostrarPanelMultijugador() {
+  const panel = document.getElementById('panel-multijugador');
+  if (panel) panel.style.display = 'block';
+}
+
+// Obtener apuesta del selector (multijugador)
+function obtenerApuesta() {
+  const select = document.getElementById('apuesta-select');
+  return parseInt(select?.value || 0);
+}
+
+// Crear sala en modo solitario
 async function crearSala(modo, numBots) {
-  const apuestaSelect = document.getElementById('apuesta-select');
-  const apuesta = parseInt(apuestaSelect?.value || 0);
-  
-  const salaId = await LobbyManager.crearSala(modo, numBots, apuesta);
+  const apuesta = 0; // solitario sin apuesta
+  const salaId = await LobbyManager.crearSala(modo, numBots, apuesta, 1);
   if (salaId) {
-    salaActualId = salaId;
-    
-    if (unsubscribeSala) unsubscribeSala();
-    unsubscribeSala = LobbyManager.escucharSala(salaId, (sala) => {
-      if (sala.estado === 'jugando') {
-        iniciarPartidaDesdeSala(sala);
-      }
-    });
-    
-    alert(`✅ Sala creada. Esperando jugadores...\nID: ${salaId}`);
+    suscribirseASala(salaId);
   }
 }
 
+// Crear sala multijugador
+async function crearSalaMultijugador() {
+  const jugadoresSelect = document.getElementById('jugadores-select');
+  const maxJugadores = parseInt(jugadoresSelect?.value || 2);
+  const apuesta = obtenerApuesta();
+  
+  const salaId = await LobbyManager.crearSala('multijugador', 0, apuesta, maxJugadores);
+  if (salaId) {
+    suscribirseASala(salaId);
+    alert(`✅ Sala creada. Esperando jugadores (${maxJugadores - 1} más para llenarse). Puedes iniciar manualmente cuando quieras.`);
+  }
+}
+
+// Unirse a una sala desde el botón
 async function unirseASala(salaId) {
   try {
     await LobbyManager.unirseSala(salaId);
-    salaActualId = salaId;
-    
-    if (unsubscribeSala) unsubscribeSala();
-    unsubscribeSala = LobbyManager.escucharSala(salaId, (sala) => {
-      if (sala.estado === 'jugando') {
-        iniciarPartidaDesdeSala(sala);
-      }
-    });
-    
-    alert('✅ Te has unido a la sala. Esperando que empiece...');
+    suscribirseASala(salaId);
+    alert('✅ Te has unido a la sala. Esperando que el creador inicie...');
   } catch (error) {
     alert('❌ ' + error.message);
   }
+}
+
+// Iniciar partida manualmente (creador)
+async function iniciarPartida(salaId) {
+  await LobbyManager.iniciarPartida(salaId);
+}
+
+// Suscribirse a cambios de la sala (para detectar inicio)
+function suscribirseASala(salaId) {
+  salaActualId = salaId;
+  if (unsubscribeSala) unsubscribeSala();
+  unsubscribeSala = LobbyManager.escucharSala(salaId, sala => {
+    if (sala && sala.estado === 'jugando') {
+      iniciarPartidaDesdeSala(sala);
+    }
+  });
 }
 
 function salirLobby() {
@@ -147,21 +189,17 @@ function salirLobby() {
 
 function mostrarRanking() {
   mostrarPantalla('ranking');
-  
   if (unsubscribeRanking) unsubscribeRanking();
-  unsubscribeRanking = RankingManager.escucharRanking((ranking) => {
+  unsubscribeRanking = RankingManager.escucharRanking(ranking => {
     const contenedor = document.getElementById('ranking-lista');
     if (!contenedor) return;
-    
     if (ranking.length === 0) {
       contenedor.innerHTML = '<p style="color:rgba(255,255,255,0.5); text-align:center;">No hay jugadores aún</p>';
       return;
     }
-    
     contenedor.innerHTML = ranking.map((jugador, index) => {
       const medallas = ['🥇', '🥈', '🥉'];
       const medalla = index < 3 ? medallas[index] : `${index + 1}️⃣`;
-      
       return `
         <div class="ranking-item">
           ${medalla} <strong>${jugador.nombre || 'Anónimo'}</strong>
@@ -184,8 +222,8 @@ function salirRanking() {
 function iniciarPartidaDesdeSala(sala) {
   mostrarPantalla('juego');
   uiManager.ocultarResultadoFinal();
-  
-  // Crear jugadores humanos
+
+  // Construir array de jugadores
   const jugadores = sala.jugadores.map(j => ({
     nombre: j.nombre,
     emoji: '😎',
@@ -193,8 +231,8 @@ function iniciarPartidaDesdeSala(sala) {
     esIA: false,
     uid: j.uid
   }));
-  
-  // Agregar bots si es modo solitario
+
+  // Añadir bots en modo solitario
   if (sala.modo === 'solitario') {
     for (let i = 0; i < sala.numBots; i++) {
       jugadores.push({
@@ -205,18 +243,16 @@ function iniciarPartidaDesdeSala(sala) {
       });
     }
   }
-  
+
   currentGame = new Factor6Game(jugadores);
   currentGame.iniciar();
   juegoActivo = true;
   currentGame.apuesta = sala.apuesta || 0;
-  
+
   uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
   uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
-  
-  realizarSorteo().then(() => {
-    iniciarTurno();
-  });
+
+  realizarSorteo().then(() => iniciarTurno());
 }
 
 // ========================================
@@ -226,36 +262,27 @@ function iniciarPartidaDesdeSala(sala) {
 async function realizarSorteo() {
   const info = document.getElementById('sorteo-info');
   if (info) info.style.display = 'block';
-  
+
   let ganador = null;
   let intentos = 0;
-  
+
   while (!ganador && intentos < 20) {
     intentos++;
-    
     const resultados = currentGame.jugadores.map(jugador => ({
-      jugador: jugador,
+      jugador,
       numero: Math.floor(Math.random() * 6) + 1
     }));
-    
     const maxNum = Math.max(...resultados.map(r => r.numero));
     const ganadores = resultados.filter(r => r.numero === maxNum);
-    
     if (ganadores.length === 1) {
       ganador = currentGame.jugadores.indexOf(ganadores[0].jugador);
     }
-    
     await new Promise(resolve => setTimeout(resolve, 300));
   }
-  
-  if (ganador === null) {
-    ganador = Math.floor(Math.random() * currentGame.jugadores.length);
-  }
-  
+
+  if (ganador === null) ganador = Math.floor(Math.random() * currentGame.jugadores.length);
   currentGame.turnoActual = ganador;
-  
   if (info) info.style.display = 'none';
-  console.log(`🎲 Empieza: ${currentGame.jugadores[ganador].nombre}`);
 }
 
 // ========================================
@@ -264,91 +291,65 @@ async function realizarSorteo() {
 
 function iniciarTurno() {
   if (!juegoActivo) return;
-  
+
   const jugadorActual = currentGame.getJugadorActual();
   const esHumano = !jugadorActual.esIA;
-  
+
   uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
   uiManager.actualizarIndicadorTurno(jugadorActual, esHumano);
   uiManager.habilitarGiro(esHumano);
-  
-  if (!esHumano) {
-    setTimeout(() => turnoIA(), 1500);
-  }
+
+  if (!esHumano) setTimeout(() => turnoIA(), 1500);
 }
 
 function turnoIA() {
   if (!juegoActivo) return;
-  
   const numero = Math.floor(Math.random() * 6) + 1;
-  
   animarRodilloSimple(numero, () => {
     const resultado = currentGame.procesarTirada(currentGame.turnoActual, numero);
     if (!resultado) return;
-    
     uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
     uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
     uiManager.mostrarResultadoTirada(numero);
     uiManager.iluminarCasilla(numero);
-    
     if (resultado.ganador !== undefined) {
       finalizarJuego(resultado.ganador);
       return;
     }
-    
-    if (!resultado.mantieneTurno) {
-      currentGame.siguienteTurno();
-    }
-    
+    if (!resultado.mantieneTurno) currentGame.siguienteTurno();
     setTimeout(() => iniciarTurno(), 1000);
   });
 }
 
 function tirarPalanca() {
   if (!juegoActivo) return;
-  
   const jugadorActual = currentGame.getJugadorActual();
   if (jugadorActual.esIA) return;
-  
   uiManager.habilitarGiro(false);
-  
   const numero = Math.floor(Math.random() * 6) + 1;
-  
   animarRodilloSimple(numero, () => {
     const resultado = currentGame.procesarTirada(currentGame.turnoActual, numero);
     if (!resultado) return;
-    
     uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
     uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
     uiManager.mostrarResultadoTirada(numero);
     uiManager.iluminarCasilla(numero);
-    
     if (resultado.ganador !== undefined) {
       finalizarJuego(resultado.ganador);
       return;
     }
-    
-    if (!resultado.mantieneTurno) {
-      currentGame.siguienteTurno();
-    }
-    
+    if (!resultado.mantieneTurno) currentGame.siguienteTurno();
     setTimeout(() => iniciarTurno(), 1000);
   });
 }
-
-// ========================================
-// FINALIZAR JUEGO
-// ========================================
 
 async function finalizarJuego(ganadorIndex) {
   juegoActivo = false;
   const ganador = currentGame.jugadores[ganadorIndex];
   const esHumano = !ganador.esIA;
-  
   uiManager.mostrarResultadoFinal(ganador, esHumano);
   uiManager.habilitarGiro(false);
-  
-  // Actualizar monedas y ranking si hay apuesta
+
   const user = auth.currentUser;
   if (user && currentGame.apuesta > 0) {
     if (esHumano) {
@@ -361,100 +362,48 @@ async function finalizarJuego(ganadorIndex) {
       partidasJugadas: firebase.firestore.FieldValue.increment(1)
     });
   }
-  
-  if (tg?.HapticFeedback) {
-    tg.HapticFeedback.notificationOccurred(esHumano ? 'success' : 'error');
-  }
-  
-  // Actualizar sala si existe
+
+  if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred(esHumano ? 'success' : 'error');
   if (salaActualId) {
-    await db.collection('salas').doc(salaActualId).update({
-      estado: 'terminada',
-      ganador: ganador.nombre
-    });
+    await db.collection('salas').doc(salaActualId).update({ estado: 'terminada', ganador: ganador.nombre });
     salaActualId = null;
   }
 }
 
-// ========================================
-// REINICIAR PARTIDA
-// ========================================
-
 function reiniciarPartida() {
   uiManager.ocultarResultadoFinal();
-  
-  // Reiniciar con los mismos jugadores
   const jugadores = currentGame.jugadores.map(j => ({
-    nombre: j.nombre,
-    emoji: j.emoji,
-    fichas: 6,
-    esIA: j.esIA,
-    uid: j.uid
+    nombre: j.nombre, emoji: j.emoji, fichas: 6, esIA: j.esIA, uid: j.uid
   }));
-  
   currentGame = new Factor6Game(jugadores);
   currentGame.iniciar();
   juegoActivo = true;
-  
   uiManager.actualizarPanelJugadores(currentGame.jugadores, currentGame.turnoActual);
   uiManager.actualizarTablero(currentGame.casillas, currentGame.pozo);
-  
-  realizarSorteo().then(() => {
-    iniciarTurno();
-  });
+  realizarSorteo().then(() => iniciarTurno());
 }
 
-// ========================================
-// ANIMACIÓN DEL RODILLO
-// ========================================
-
+// Animación simple
 function animarRodilloSimple(numeroFinal, callback) {
   const rodillo = document.getElementById('numeros');
-  if (!rodillo) {
-    if (callback) callback();
-    return;
-  }
-  
+  if (!rodillo) { callback?.(); return; }
   let frames = 0;
-  const totalFrames = 30;
-  
+  const total = 30;
   const intervalo = setInterval(() => {
-    const numAleatorio = Math.floor(Math.random() * 6) + 1;
-    rodillo.innerHTML = `<div class="numero-rodillo">${numAleatorio}</div>`;
-    frames++;
-    
-    if (frames >= totalFrames) {
+    rodillo.innerHTML = `<div class="numero-rodillo">${Math.floor(Math.random() * 6) + 1}</div>`;
+    if (++frames >= total) {
       clearInterval(intervalo);
       rodillo.innerHTML = `<div class="numero-rodillo">${numeroFinal}</div>`;
-      if (callback) callback();
+      callback?.();
     }
   }, 50);
 }
 
-// ========================================
-// LISTENERS
-// ========================================
-
+// Listeners
 function configurarListeners() {
-  const boton = document.getElementById('boton');
-  if (boton) {
-    boton.addEventListener('click', (e) => {
-      e.preventDefault();
-      tirarPalanca();
-    });
-  }
-  
-  const btnReiniciar = document.querySelector('.btn-reiniciar');
-  if (btnReiniciar) {
-    btnReiniciar.addEventListener('click', () => {
-      reiniciarPartida();
-    });
-  }
+  document.getElementById('boton')?.addEventListener('click', e => { e.preventDefault(); tirarPalanca(); });
+  document.querySelector('.btn-reiniciar')?.addEventListener('click', reiniciarPartida);
 }
-
-// ========================================
-// INICIAR
-// ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
   configurarListeners();
