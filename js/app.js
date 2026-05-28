@@ -203,13 +203,36 @@ function suscribirseASala(salaId) {
     }
     if (sala && sala.estado === 'terminada') {
       console.log('🏁 Sala terminada');
+      // Limpiar sala terminada
+      LobbyManager.eliminarSala(salaId);
+      salaActualId = null;
+    }
+    if (!sala) {
+      // La sala fue eliminada
       salaActualId = null;
     }
   });
 }
 
-function salirLobby() {
+async function salirLobby() {
+  // Si hay una sala creada y el usuario es el creador, eliminarla
+  if (salaActualId && auth.currentUser) {
+    try {
+      const salaDoc = await db.collection('salas').doc(salaActualId).get();
+      if (salaDoc.exists) {
+        const sala = salaDoc.data();
+        if (sala.estado === 'esperando' && sala.creador === auth.currentUser.uid) {
+          await LobbyManager.eliminarSala(salaActualId);
+        }
+      }
+    } catch (e) {
+      console.error('Error al limpiar sala al salir:', e);
+    }
+  }
+  
   if (unsubscribeSalas) unsubscribeSalas();
+  if (unsubscribeSala) unsubscribeSala();
+  salaActualId = null;
   mostrarPortada();
 }
 
@@ -401,12 +424,9 @@ async function finalizarJuego(ganadorIndex) {
   
   if (salaActualId) {
     try {
-      await db.collection('salas').doc(salaActualId).update({ 
-        estado: 'terminada', 
-        ganador: ganador.nombre 
-      });
+      await LobbyManager.eliminarSala(salaActualId);
     } catch (e) {
-      console.error('Error actualizando sala:', e);
+      console.error('Error eliminando sala terminada:', e);
     }
     salaActualId = null;
   }
